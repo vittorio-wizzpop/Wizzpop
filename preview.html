@@ -265,6 +265,18 @@ body{
   opacity:0;transform:scale(.75);transition:opacity .2s,transform .2s;
 }
 .combo-badge.on{opacity:1;transform:scale(1)}
+.moves-wrap{
+  display:flex;flex-direction:column;align-items:center;
+  gap:1px;min-width:40px;
+}
+.moves-num{
+  font-size:20px;font-weight:900;color:var(--t1);
+  line-height:1;transition:color .25s,transform .2s;
+  font-variant-numeric:tabular-nums;
+}
+.moves-lbl{font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.4px;text-transform:uppercase}
+.moves-num.urgent{color:var(--err);animation:mv-pulse .65s ease-in-out infinite}
+@keyframes mv-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
 .legend{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
 .legend::-webkit-scrollbar{display:none}
 .leg-item{border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap}
@@ -712,6 +724,10 @@ body{
   <div class="score-bar">
     <button class="nav-back" id="btn-back">←</button>
     <div class="lives" id="lives"></div>
+    <div class="moves-wrap" id="moves-wrap">
+      <div class="moves-num" id="moves-num">∞</div>
+      <div class="moves-lbl">mosse</div>
+    </div>
     <div class="score-num" id="score">0</div>
     <div class="combo-badge" id="combo">×2</div>
   </div>
@@ -1084,11 +1100,11 @@ const WM_POS=[[100,618],[270,482],[108,348],[268,214],[184,88]];
 // Configurazione livelli Mondo 1
 const LEVEL_CFGS={
   origini:[
-    {n:1,pairs:5, lives:3,diff:1,type:'easy',  name:'Primo Passo'},
-    {n:2,pairs:8, lives:3,diff:1,type:'easy',  name:'Curioso'},
-    {n:3,pairs:10,lives:3,diff:2,type:'medium',name:'Pensatore'},
-    {n:4,pairs:8, lives:3,diff:1,type:'easy',  name:'Respiro'},
-    {n:5,pairs:12,lives:2,diff:2,type:'boss',  name:'Il Boss'},
+    {n:1,pairs:5, lives:3,diff:1,type:'easy',  name:'Primo Passo', maxMoves:null},
+    {n:2,pairs:8, lives:3,diff:1,type:'easy',  name:'Curioso',     maxMoves:null},
+    {n:3,pairs:10,lives:3,diff:2,type:'medium',name:'Pensatore',   maxMoves:25},
+    {n:4,pairs:8, lives:3,diff:1,type:'easy',  name:'Respiro',     maxMoves:20},
+    {n:5,pairs:12,lives:2,diff:2,type:'boss',  name:'Il Boss',     maxMoves:15},
   ],
 };
 
@@ -1425,13 +1441,26 @@ function gravity(board){
   return b;
 }
 
+// ── Anti-ripetizione domande: tracciamento globale per sessione ──────────
+// Una Set per categoria — reset singola categoria quando esaurita
+const seenQs={geo:new Set(),sci:new Set(),art:new Set(),hist:new Set(),wild:new Set()};
+
 function freshGs(cfg){
   return{board:[],sel:null,score:0,lives:cfg.lives,
          combo:1,pairs:0,errors:0,answered:false,
-         timerSec:15,timerH:null,curQ:null,cfg};
+         timerSec:15,timerH:null,curQ:null,cfg,
+         moves:0,maxMoves:cfg.maxMoves??null,
+         pendingA:null,pendingB:null,lastMatchCorrect:false};
 }
 
 function rLives(){$('lives').innerHTML=[1,2,3].map(i=>`<span class="heart${i>gs.lives?' lost':''}">❤️</span>`).join('')}
+function rMoves(){
+  const el=$('moves-num'); if(!el)return;
+  if(gs.maxMoves===null){el.textContent='∞';el.classList.remove('urgent');return;}
+  const rem=gs.maxMoves-gs.moves;
+  el.textContent=Math.max(0,rem);
+  rem<=5?el.classList.add('urgent'):el.classList.remove('urgent');
+}
 function rScore(){$('score').textContent=gs.score.toLocaleString('it-IT')}
 function rCombo(){
   const el=$('combo');
@@ -1465,15 +1494,23 @@ function launchGame(wid,cfg){
   nav.worldId=wid;nav.levelN=cfg.n;
   gs=freshGs(cfg);gs.board=newBoard();
   $('overlay').classList.remove('open');
-  rLives();rScore();rCombo();rProgress();rLegend();rGrid();
+  rLives();rScore();rCombo();rProgress();rMoves();rLegend();rGrid();
   showScreen('game');
 }
 
 // ════════════════════════════════════════════════════════ QUESTION MODAL
 
 function pickQ(cat){
-  const pool=QUESTIONS.filter(q=>q.cat===cat);
-  return pool.length?pool[Math.floor(Math.random()*pool.length)]:QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
+  // Raccoglie tutte le domande della categoria con il loro indice globale
+  const catEntries=QUESTIONS.map((q,i)=>({q,i})).filter(({q})=>q.cat===cat);
+  if(!catEntries.length)return QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
+  // Filtra quelle non ancora viste in questa sessione
+  let available=catEntries.filter(({i})=>!seenQs[cat].has(i));
+  // Se le abbiamo viste tutte, reset e ricomincia
+  if(!available.length){seenQs[cat].clear();available=catEntries;}
+  const pick=available[Math.floor(Math.random()*available.length)];
+  seenQs[cat].add(pick.i);
+  return pick.q;
 }
 
 function openModal(cat){
@@ -1504,19 +1541,37 @@ function openModal(cat){
 
 function onAnswer(chosen){
   if(gs.answered)return;
-  gs.answered=true;clearInterval(gs.timerH);
+  gs.answered=true; clearInterval(gs.timerH);
   const q=gs.curQ,timedOut=chosen===-1,correct=!timedOut&&chosen===q.ok;
+  gs.lastMatchCorrect=correct;
+
   document.querySelectorAll('.opt').forEach((btn,i)=>{
     btn.disabled=true;
     if(i===q.ok)btn.classList.add('right');
     else if(i===chosen&&!correct)btn.classList.add('wrong');
     else if(i!==q.ok)btn.classList.add('dim');
   });
-  if(correct){gs.score+=100*Math.max(1,gs.combo);gs.combo=Math.min(gs.combo+1,5);}
-  else gs.combo=1;
-  rScore();rCombo();
+
+  if(correct){
+    // Match confermato: conta coppia e assegna punti
+    gs.pairs++;
+    gs.score+=50+100*Math.max(1,gs.combo);
+    gs.combo=Math.min(gs.combo+1,5);
+  } else {
+    // Risposta sbagliata/timeout: match annullato, vita persa
+    gs.errors++;
+    gs.combo=1;
+    gs.lives=Math.max(0,gs.lives-1);
+    // Ripristina celle pendenti
+    if(gs.pendingA!==null)gs.board[gs.pendingA].gone=false;
+    if(gs.pendingB!==null)gs.board[gs.pendingB].gone=false;
+    rLives();
+  }
+
+  rScore(); rCombo(); rProgress();
+
   const res=$('fact-result');
-  res.textContent=timedOut?'⏱ Tempo scaduto!':correct?'✅ Esatto!':'❌ Risposta sbagliata';
+  res.textContent=timedOut?'⏱ Tempo scaduto! Match annullato.':correct?'✅ Esatto!':'❌ Sbagliato — match annullato, -1 vita';
   res.style.color=correct?'#639922':'#E24B4A';
   $('fact-body').textContent=q.fact;
   $('fact-box').classList.add('show');
@@ -1527,8 +1582,22 @@ function closeModal(){
   clearInterval(gs.timerH);
   $('overlay').classList.remove('open');
   setTimeout(()=>{
-    gs.board=gravity(gs.board);rGrid();
-    if(gs.pairs>=gs.cfg.pairs)showResult(true);
+    gs.board=gravity(gs.board); rGrid();
+
+    if(!gs.lastMatchCorrect){
+      // Celle ritornate — animazione shake in rosso
+      [gs.pendingA,gs.pendingB].forEach(idx=>{
+        if(idx===null)return;
+        const el=document.querySelector(`.cell[data-i="${idx}"]`);
+        if(el){el.classList.add('err');setTimeout(()=>el.classList.remove('err'),500);}
+      });
+    }
+    gs.pendingA=null; gs.pendingB=null;
+
+    // Check fine livello
+    if(gs.lives<=0)return showResult(false);
+    if(gs.pairs>=gs.cfg.pairs)return showResult(true);
+    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)return showResult(true);
   },380);
 }
 
@@ -1537,31 +1606,50 @@ function closeModal(){
 function onCell(i){
   if($('overlay').classList.contains('open'))return;
   if(gs.board[i].gone||gs.lives<=0)return;
+
+  // Ogni tap = 1 mossa
+  if(gs.maxMoves!==null){
+    gs.moves++;
+    rMoves();
+  }
+
   if(gs.sel===null){
     gs.sel=i;
     document.querySelector(`.cell[data-i="${i}"]`).classList.add('sel');
+    // Mosse finite dopo la prima selezione → fine livello dopo breve attesa
+    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)
+      setTimeout(()=>showResult(true),400);
     return;
   }
   if(gs.sel===i){
     document.querySelector(`.cell[data-i="${i}"]`).classList.remove('sel');
-    gs.sel=null;return;
+    gs.sel=null;
+    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)
+      setTimeout(()=>showResult(true),400);
+    return;
   }
+
   const a=gs.board[gs.sel],b=gs.board[i];
   const elA=document.querySelector(`.cell[data-i="${gs.sel}"]`);
   const elB=document.querySelector(`.cell[data-i="${i}"]`);
+  const movesUp=gs.maxMoves!==null&&gs.moves>=gs.maxMoves;
+
   if(a.cat===b.cat){
-    gs.board[gs.sel].gone=true;gs.board[i].gone=true;
-    gs.pairs++;gs.score+=50;
+    // Match valido — celle pendenti, attendiamo la risposta alla domanda
+    gs.pendingA=gs.sel; gs.pendingB=i;
+    gs.board[gs.sel].gone=true; gs.board[i].gone=true;
     if(elA){elA.classList.remove('sel');elA.classList.add('gone')}
     if(elB)elB.classList.add('gone');
-    rScore();rProgress();gs.sel=null;
+    gs.sel=null;
     setTimeout(()=>openModal(b.cat),320);
   } else {
-    gs.lives=Math.max(0,gs.lives-1);gs.combo=1;gs.errors++;
+    // Mismatch — vita e animazione errore
+    gs.lives=Math.max(0,gs.lives-1); gs.combo=1; gs.errors++;
     if(elA){elA.classList.remove('sel');elA.classList.add('err');setTimeout(()=>elA.classList.remove('err'),500)}
     if(elB){elB.classList.add('err');setTimeout(()=>elB.classList.remove('err'),500)}
-    gs.sel=null;rLives();rCombo();
-    if(gs.lives===0)setTimeout(()=>showResult(false),600);
+    gs.sel=null; rLives(); rCombo();
+    if(gs.lives===0)return setTimeout(()=>showResult(false),600);
+    if(movesUp)setTimeout(()=>showResult(true),650);
   }
 }
 
@@ -1592,26 +1680,33 @@ function spawnConfetti(){
 
 const R_MSGS={
   3:{title:'Perfetto! 🌟',msg:'Zero errori — hai dominato questo livello.'},
-  2:{title:'Ottimo!',     msg:'Puoi fare ancora meglio. Riprova per 3 stelle.'},
-  1:{title:'Ce la fai!',  msg:'Allena la combo e riduci gli errori.'},
+  2:{title:'Ottimo! 👍',  msg:'Puoi fare ancora meglio. Riprova per 3 stelle.'},
+  1:{title:'Ce la fai!', msg:'Allena la combo e riduci gli errori.'},
   0:{title:'Game Over 💀',msg:'Nessun problema — la prossima andrà meglio!'},
 };
 
 function showResult(win){
   clearInterval(gs.timerH);
   $('overlay').classList.remove('open');
+
+  // Stelle: 0 errori = 3★, 1-2 errori = 2★, 3+ = 1★ (0 se game over)
   const stars=win?(gs.errors===0?3:gs.errors<=2?2:1):0;
+  const movesExhausted=gs.maxMoves!==null&&gs.moves>=gs.maxMoves&&gs.pairs<gs.cfg.pairs;
   const info=R_MSGS[stars];
   const xp=Math.floor(gs.score*.5);
   if(win)setLvP(nav.worldId,nav.levelN,stars,gs.score);
 
   const cfg=(LEVEL_CFGS[nav.worldId]||[]).find(c=>c.n===nav.levelN);
   $('res-outcome').textContent=win
-    ?`✦ Livello ${nav.levelN}: ${cfg?.name||''} ✦`:'✦ Game Over ✦';
-  $('res-title').textContent=info.title;
-  $('res-msg').textContent=info.msg;
+    ?(movesExhausted?`✦ Mosse esaurite — ${gs.pairs}/${gs.cfg.pairs} coppie ✦`
+                    :`✦ Livello ${nav.levelN}: ${cfg?.name||''} ✦`)
+    :'✦ Game Over ✦';
+  $('res-title').textContent=movesExhausted&&stars<3?`Mosse finite! ${info.title}`:info.title;
+  $('res-msg').textContent=movesExhausted
+    ?`Hai completato ${gs.pairs} coppie su ${gs.cfg.pairs} con ${gs.errors} err${gs.errors===1?'ore':'ori'}.`
+    :info.msg;
   $('res-xp').textContent=win?`+${xp} XP`:'';
-  $('r-pairs').textContent=gs.pairs;
+  $('r-pairs').textContent=`${gs.pairs}/${gs.cfg.pairs}`;
   $('r-errors').textContent=gs.errors;
 
   // Reset stelle (partono dall'alto)
