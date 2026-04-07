@@ -1,0 +1,1755 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WizzPop — Preview</title>
+<style>
+/* ═══════════════════════════════════════ RESET & VARS */
+:root{
+  --primary:#5349B7; --primary-light:#EEEDFE;
+  --accent:#EF9F27;  --bg:#F8F7F2; --surface:#FFF;
+  --ok:#639922; --err:#E24B4A;
+  --t1:#1A1A18; --t2:#888780; --t3:#B4B2A9;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{
+  background:#111; min-height:100vh;
+  display:flex; align-items:center; justify-content:center;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',system-ui,sans-serif;
+}
+
+/* ═══════════════════════════════════════ PHONE */
+#phone{
+  width:390px; height:844px; background:var(--bg);
+  border-radius:44px; overflow:hidden; position:relative;
+  box-shadow:0 32px 90px rgba(0,0,0,.7),0 0 0 1px rgba(255,255,255,.06);
+}
+.screen{
+  position:absolute; inset:0;
+  display:flex; flex-direction:column;
+  opacity:0; pointer-events:none;
+  transition:opacity .28s ease;
+}
+.screen.active{opacity:1;pointer-events:all}
+
+/* ═══════════════════════════════════════ HOME */
+#home{align-items:center;justify-content:space-between;padding:0 28px 52px}
+.home-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
+.logo-emoji{font-size:76px;line-height:1}
+.logo-emoji.pulsing{animation:pulse 2.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.logo-title{font-size:50px;font-weight:900;color:var(--primary);letter-spacing:-1.5px}
+.logo-tagline{font-size:17px;color:var(--t2);letter-spacing:.3px;text-align:center}
+.home-bottom{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
+.btn-play{
+  width:100%;background:var(--primary);color:#fff;border:none;
+  border-radius:18px;padding:20px;font-size:18px;font-weight:700;
+  letter-spacing:.5px;cursor:pointer;font-family:inherit;
+  box-shadow:0 6px 24px rgba(83,73,183,.35);
+  transition:transform .14s,box-shadow .14s;
+}
+.btn-play:hover{transform:scale(1.02);box-shadow:0 8px 28px rgba(83,73,183,.45)}
+.btn-play:active{transform:scale(.97)}
+.btn-map{
+  width:100%;background:transparent;color:var(--primary);
+  border:2px solid var(--primary);border-radius:18px;
+  padding:14px;font-size:16px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+  transition:background .2s,transform .1s;
+}
+.btn-map:hover{background:var(--primary-light)}
+.btn-map:active{transform:scale(.97)}
+.home-ver{font-size:12px;color:var(--t3);margin-top:4px}
+
+/* ═══════════════════════════════════════ WORLD MAP */
+#worldmap{
+  background:linear-gradient(158deg,#FFF8EE 0%,#FFE9C2 55%,#FFD898 100%);
+}
+.wm-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:16px 16px 12px;
+  background:rgba(255,255,255,.6);
+  backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(255,200,100,.3);
+  flex-shrink:0; z-index:5;
+}
+.nav-back{background:none;border:none;font-size:22px;color:var(--primary);cursor:pointer;font-weight:700;line-height:1;padding:0 4px 0 0;flex-shrink:0}
+.nav-title{flex:1;text-align:center;font-size:17px;font-weight:700;color:var(--t1)}
+.wm-body{flex:1;position:relative;overflow:hidden}
+.wm-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+.wm-node{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;z-index:10;
+}
+.wm-node.locked{cursor:default}
+.wm-ripple{
+  position:absolute;width:80px;height:80px;border-radius:50%;
+  background:rgba(230,126,34,.15);
+  animation:wm-ripple 2s ease-out infinite;
+  pointer-events:none;
+}
+@keyframes wm-ripple{
+  0%{transform:scale(1);opacity:.7}
+  100%{transform:scale(2);opacity:0}
+}
+.wm-circle{
+  width:80px;height:80px;border-radius:50%;
+  display:flex;align-items:center;justify-content:center;
+  font-size:32px;position:relative;
+  box-shadow:0 6px 20px rgba(0,0,0,.15);
+  border:4px solid rgba(255,255,255,.5);
+  transition:transform .15s,box-shadow .15s;
+}
+.wm-node:not(.locked):hover .wm-circle{transform:scale(1.1);box-shadow:0 10px 28px rgba(0,0,0,.2)}
+.wm-circle.active{
+  background:linear-gradient(135deg,#FF9A4D,#E67E22);
+  animation:node-glow 2.2s ease-in-out infinite;
+}
+@keyframes node-glow{
+  0%,100%{box-shadow:0 6px 20px rgba(230,126,34,.4),0 0 0 0 rgba(230,126,34,.3)}
+  50%{box-shadow:0 8px 26px rgba(230,126,34,.6),0 0 0 10px rgba(230,126,34,.0)}
+}
+.wm-circle.locked-c{background:linear-gradient(135deg,#D0CDC7,#B5B2AB)}
+.wm-circle.w2{background:linear-gradient(135deg,#A855F7,#8E44AD)}
+.wm-circle.w3{background:linear-gradient(135deg,#4BA8E0,#2980B9)}
+.wm-circle.w4{background:linear-gradient(135deg,#40C97A,#27AE60)}
+.wm-circle.w5{background:linear-gradient(135deg,#8B7CF6,#5349B7)}
+.wm-label{
+  margin-top:8px;font-size:11px;font-weight:700;color:var(--t1);
+  text-align:center;white-space:nowrap;letter-spacing:.3px;max-width:96px;
+}
+.wm-node.locked .wm-label{color:var(--t2)}
+.wm-sublabel{font-size:9px;color:var(--t2);margin-top:2px;font-weight:600}
+.wm-node:not(.locked) .wm-sublabel{color:var(--t1);opacity:.7}
+
+/* ═══════════════════════════════════════ LEVEL SELECT */
+#levels{background:var(--bg)}
+.lv-hero{
+  background:var(--primary);
+  padding:20px 20px 56px;
+  flex-shrink:0;position:relative;overflow:visible;
+  min-height:120px;
+}
+.lv-back{
+  background:none;border:none;color:rgba(255,255,255,.7);
+  font-size:20px;cursor:pointer;align-self:flex-start;padding:0;margin-bottom:8px;display:block;
+}
+.lv-world-name{font-size:24px;font-weight:900;color:#fff}
+.lv-world-desc{font-size:13px;color:rgba(255,255,255,.65);margin-top:4px}
+.lv-wave{
+  position:absolute;bottom:-1px;left:0;width:100%;height:52px;
+  display:block;
+}
+
+.lv-body{flex:1;padding:20px 20px 10px;overflow-y:auto}
+.lv-path{position:relative;width:350px;height:290px;margin:0 auto}
+.lv-path-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+
+.lv-node{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;z-index:10;
+}
+.lv-node.lv-locked{cursor:default}
+.lv-bubble{
+  width:74px;height:74px;border-radius:50%;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  font-weight:900;font-size:22px;color:#fff;
+  border:4px solid rgba(255,255,255,.35);
+  position:relative;
+  box-shadow:0 6px 18px rgba(0,0,0,.15);
+  transition:transform .15s;
+}
+.lv-node:not(.lv-locked):active .lv-bubble{transform:scale(.92)}
+.lv-easy  {background:linear-gradient(135deg,#7BC95A,#4E9B2B)}
+.lv-medium{background:linear-gradient(135deg,#FF9F45,#D4690D)}
+.lv-boss  {background:linear-gradient(135deg,#8B7CF6,var(--primary));border-color:#D4AF37;border-width:4px;
+            box-shadow:0 6px 18px rgba(83,73,183,.35),inset 0 1px 0 rgba(255,255,255,.2)}
+.lv-lk   {background:linear-gradient(135deg,#D0CDC7,#B0ADA6)}
+.lv-crown{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:18px}
+.lv-starsm{font-size:8px;margin-top:2px;letter-spacing:1px;line-height:1}
+.lv-label{
+  margin-top:8px;font-size:10px;font-weight:700;
+  color:var(--t2);text-align:center;white-space:nowrap;
+}
+
+.lv-legend{
+  display:flex;gap:14px;justify-content:center;
+  margin-top:24px;flex-wrap:wrap;
+}
+.lv-leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--t2)}
+.lv-leg-dot{width:10px;height:10px;border-radius:50%}
+
+/* Bounce available levels */
+@keyframes lvl-bounce{
+  0%,100%{transform:translate(-50%,-50%) scale(1) translateY(0)}
+  45%{transform:translate(-50%,-50%) scale(1.05) translateY(-5px)}
+}
+/* Jiggle locked */
+@keyframes lock-jiggle{
+  0%,100%{transform:rotate(0)}
+  20%{transform:rotate(-10deg)}
+  40%{transform:rotate(10deg)}
+  60%{transform:rotate(-6deg)}
+  80%{transform:rotate(6deg)}
+}
+
+/* ═══════════════════════════════════════ CINEMATIC */
+#cinematic{background:#060608;cursor:pointer;overflow:hidden}
+#cin-canvas{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.cin-bar{position:absolute;left:0;right:0;background:#000;z-index:10;transition:height .65s cubic-bezier(.32,.72,0,1)}
+.cin-bar-top{top:0;height:0}
+.cin-bar-bot{bottom:0;height:0}
+.cin-open .cin-bar-top,
+.cin-open .cin-bar-bot{height:11%}
+
+.cin-content{
+  position:absolute;inset:0;z-index:20;
+  display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:20px 38px;gap:18px;text-align:center;
+}
+.cin-era{
+  font-size:11px;font-weight:700;letter-spacing:2.5px;
+  text-transform:uppercase;color:rgba(255,255,255,.42);
+  opacity:0;transition:opacity .6s ease,transform .6s ease;transform:translateY(8px);
+}
+.cin-divider{width:40px;height:1px;background:rgba(255,255,255,.18);opacity:0;transition:opacity .4s ease}
+.cin-text{
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:22px;font-style:italic;
+  color:rgba(255,255,255,.92);line-height:1.6;
+  min-height:60px;opacity:1;
+}
+.cin-cursor{
+  display:inline-block;width:2px;height:1.1em;
+  background:rgba(255,255,255,.7);vertical-align:text-bottom;margin-left:2px;
+  animation:cur-blink .7s steps(1) infinite;
+}
+@keyframes cur-blink{0%,49%{opacity:1}50%,100%{opacity:0}}
+.cin-author{
+  font-size:20px;font-weight:800;letter-spacing:.2px;
+  color:var(--accent);
+  opacity:0;transition:opacity .6s ease,transform .6s ease;transform:translateY(8px);
+}
+.cin-ctx{
+  font-size:12px;font-style:italic;color:rgba(255,255,255,.38);letter-spacing:.3px;
+  opacity:0;transition:opacity .5s ease,transform .5s ease;transform:translateY(6px);
+}
+.cin-footer{
+  position:absolute;bottom:13%;left:38px;right:38px;z-index:20;
+  display:flex;flex-direction:column;align-items:center;gap:10px;
+  opacity:0;transition:opacity .5s ease;
+}
+.cin-prog-track{width:100%;height:2px;background:rgba(255,255,255,.1);border-radius:1px;overflow:hidden}
+.cin-prog-fill{height:100%;border-radius:1px;width:100%}
+.cin-skip{font-size:11px;color:rgba(255,255,255,.26);letter-spacing:1.2px;text-transform:uppercase}
+
+/* ═══════════════════════════════════════ GAME */
+.score-bar{
+  display:flex;align-items:center;gap:10px;
+  padding:16px 14px 12px;
+  background:var(--surface);border-bottom:1px solid #EEECEA;flex-shrink:0;
+}
+.lives{display:flex;gap:3px}
+.heart{font-size:18px;transition:opacity .3s,transform .3s}
+.heart.lost{opacity:.18;transform:scale(.85)}
+.score-num{flex:1;text-align:right;font-size:20px;font-weight:800;color:var(--t1)}
+.combo-badge{
+  background:var(--accent);color:#fff;border-radius:8px;
+  padding:3px 10px;font-size:14px;font-weight:900;
+  opacity:0;transform:scale(.75);transition:opacity .2s,transform .2s;
+}
+.combo-badge.on{opacity:1;transform:scale(1)}
+.legend{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.legend::-webkit-scrollbar{display:none}
+.leg-item{border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap}
+.grid-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:4px 12px}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:100%}
+.cell{
+  aspect-ratio:1;border-radius:11px;
+  display:flex;align-items:center;justify-content:center;
+  font-size:22px;cursor:pointer;border:2.5px solid transparent;
+  transition:transform .12s,border-color .12s,opacity .28s,box-shadow .12s;
+  user-select:none;-webkit-user-select:none;
+}
+.cell:hover{transform:scale(1.07)}
+.cell:active{transform:scale(.94)}
+.cell.sel{border-color:var(--primary);transform:scale(1.08);box-shadow:0 0 0 3px rgba(83,73,183,.2)}
+.cell.gone{opacity:0;transform:scale(.75);pointer-events:none}
+.cell.err{border-color:var(--err)!important;animation:shake .4s ease}
+@keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
+.prog-area{padding:6px 20px 22px;flex-shrink:0}
+.prog-label{text-align:center;font-size:13px;color:var(--t2);margin-bottom:7px}
+.prog-track{height:6px;background:#E5E4DF;border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:var(--primary);border-radius:3px;transition:width .4s ease}
+
+/* ═══════════════════════════════════════ QUESTION MODAL */
+.overlay{
+  position:absolute;inset:0;background:rgba(0,0,0,0);
+  display:flex;flex-direction:column;justify-content:flex-end;
+  pointer-events:none;transition:background .3s;z-index:200;
+}
+.overlay.open{background:rgba(0,0,0,.48);pointer-events:all}
+.modal-sheet{
+  background:var(--bg);border-radius:26px 26px 0 0;
+  padding:20px 22px 42px;transform:translateY(100%);
+  transition:transform .36s cubic-bezier(.32,.72,0,1);
+  display:flex;flex-direction:column;gap:13px;
+  max-height:92%;overflow-y:auto;
+}
+.overlay.open .modal-sheet{transform:translateY(0)}
+.handle{width:36px;height:4px;background:#D0CEC9;border-radius:2px;align-self:center}
+.cat-badge{align-self:flex-start;border-radius:20px;padding:5px 14px;font-size:13px;font-weight:700}
+.timer-track{height:4px;background:#E5E4DF;border-radius:2px;overflow:hidden}
+.timer-fill{height:100%;background:var(--primary);border-radius:2px;transition:width 1s linear,background .3s}
+.timer-fill.danger{background:var(--err)}
+.q-text{font-size:17px;font-weight:700;color:var(--t1);line-height:1.5}
+.options{display:flex;flex-direction:column;gap:9px}
+.opt{
+  background:var(--surface);border:1.5px solid #E5E4DF;
+  border-radius:13px;padding:14px 16px;font-size:15px;font-weight:600;
+  color:var(--t1);cursor:pointer;text-align:left;font-family:inherit;
+  transition:background .22s,border-color .22s,color .22s,transform .1s;
+}
+.opt:hover:not(:disabled){border-color:var(--primary);transform:scale(1.01)}
+.opt:active:not(:disabled){transform:scale(.99)}
+.opt.right{background:var(--ok);border-color:var(--ok);color:#fff}
+.opt.wrong{background:var(--err);border-color:var(--err);color:#fff}
+.opt.dim{opacity:.45}
+.opt:disabled{cursor:default}
+.fact-box{
+  background:var(--primary-light);border-radius:14px;padding:15px;
+  display:flex;flex-direction:column;gap:5px;
+  max-height:0;overflow:hidden;opacity:0;
+  transition:max-height .4s ease,opacity .3s ease,padding .3s;
+  padding-top:0;padding-bottom:0;
+}
+.fact-box.show{max-height:300px;opacity:1;padding:15px}
+.fact-tag{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.8px}
+.fact-result{font-size:15px;font-weight:700;margin-bottom:2px}
+.fact-body{font-size:14px;color:var(--t1);line-height:1.5}
+.btn-cont{
+  background:var(--primary);color:#fff;border:none;
+  border-radius:13px;padding:14px;font-size:15px;font-weight:700;
+  cursor:pointer;margin-top:2px;font-family:inherit;transition:transform .12s;
+}
+.btn-cont:hover{transform:scale(1.02)}
+.btn-cont:active{transform:scale(.97)}
+
+/* ═══════════════════════════════════════ RESULT */
+#result{overflow:hidden}
+.res-top{
+  background:linear-gradient(160deg,#6B5ED4 0%,var(--primary) 100%);
+  padding:40px 24px 32px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  position:relative;overflow:hidden;flex-shrink:0;
+}
+.res-top::before{
+  content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
+  width:340px;height:340px;border-radius:50%;background:rgba(255,255,255,.06);
+}
+.res-outcome{
+  font-size:12px;font-weight:700;letter-spacing:2px;
+  text-transform:uppercase;color:rgba(255,255,255,.6);position:relative;
+}
+.res-stars-row{display:flex;gap:6px;align-items:center;position:relative}
+
+/* Stars fall from above */
+.res-star{
+  font-size:44px;display:inline-block;
+  filter:grayscale(1);opacity:.25;
+  transform:translateY(-80px) scale(.3) rotate(-20deg);
+}
+.res-star.lit{
+  filter:none;opacity:1;
+  animation:star-drop .65s cubic-bezier(.34,1.56,.64,1) forwards;
+}
+@keyframes star-drop{
+  0%  {transform:translateY(-80px) scale(.3) rotate(-20deg);filter:grayscale(1);opacity:.25}
+  55% {transform:translateY(8px) scale(1.3) rotate(7deg);filter:none;opacity:1}
+  75% {transform:translateY(-4px) scale(.92) rotate(-4deg)}
+  90% {transform:translateY(2px) scale(1.04) rotate(1deg)}
+  100%{transform:translateY(0) scale(1) rotate(0)}
+}
+
+.confetti-burst{position:absolute;inset:0;pointer-events:none;overflow:hidden;opacity:0;transition:opacity .3s ease 1.7s}
+.confetti-burst.go{opacity:1}
+.conf{position:absolute;width:7px;height:7px;border-radius:2px;animation:conf-fall 1.5s ease-out forwards}
+@keyframes conf-fall{0%{opacity:1;transform:translateY(0) rotate(0)}100%{opacity:0;transform:translateY(90px) rotate(400deg)}}
+
+.res-title{font-size:22px;font-weight:900;color:#fff;position:relative}
+.res-body{flex:1;width:100%;display:flex;flex-direction:column;align-items:center;padding:20px 28px 0;gap:14px;overflow-y:auto}
+.res-msg{font-size:14px;color:var(--t2);text-align:center;line-height:1.5}
+.res-score-card{
+  background:var(--surface);border-radius:20px;padding:16px 32px;
+  display:flex;flex-direction:column;align-items:center;gap:2px;
+  box-shadow:0 2px 16px rgba(0,0,0,.07);width:100%;
+}
+.res-score-val{font-size:40px;font-weight:900;color:var(--primary);letter-spacing:-1px;font-variant-numeric:tabular-nums}
+.res-score-lbl{font-size:12px;color:var(--t3);font-weight:600}
+.res-xp{background:#FFF3DC;color:var(--accent);border-radius:20px;padding:6px 18px;font-size:14px;font-weight:800}
+.res-stats{display:flex;gap:20px;align-items:center}
+.res-stat{display:flex;flex-direction:column;align-items:center;gap:2px}
+.res-stat-val{font-size:22px;font-weight:800;color:var(--t1)}
+.res-stat-lbl{font-size:12px;color:var(--t3)}
+.res-sep{font-size:20px;color:#D5D3CD}
+.res-btns{width:100%;padding:14px 28px 38px;display:flex;flex-direction:column;gap:9px}
+.btn-f{width:100%;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;transition:transform .12s}
+.btn-f:hover{transform:scale(1.02)}
+.btn-f:active{transform:scale(.97)}
+.btn-pri{background:var(--primary);color:#fff;box-shadow:0 4px 16px rgba(83,73,183,.3)}
+.btn-sec{background:var(--primary-light);color:var(--primary)}
+.btn-ghost{background:transparent;color:var(--t2);border:1.5px solid #E5E4DF}
+.btn-hide{display:none}
+
+/* ═══════════════════════════════════════ PROFILE */
+#profile{background:var(--bg);display:flex;flex-direction:column}
+.prof-body{flex:1;overflow-y:auto;padding:16px 20px 40px;display:flex;flex-direction:column;gap:18px}
+.prof-identity{display:flex;flex-direction:column;align-items:center;gap:10px;padding:8px 0 4px}
+.prof-avatar-big{font-size:64px;line-height:1;cursor:pointer}
+.prof-username{font-size:20px;font-weight:800;color:var(--t1);letter-spacing:-.3px}
+.prof-avatar-row{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.avatar-opt{
+  width:46px;height:46px;border-radius:14px;background:var(--surface);
+  display:flex;align-items:center;justify-content:center;font-size:26px;
+  border:2.5px solid transparent;cursor:pointer;transition:border-color .18s,transform .12s;
+  box-shadow:0 2px 8px rgba(0,0,0,.08);
+}
+.avatar-opt:hover{transform:scale(1.1)}
+.avatar-opt.av-sel{border-color:var(--primary);background:var(--primary-light)}
+.prof-rank-card{
+  background:var(--surface);border-radius:20px;padding:16px 18px;
+  display:flex;flex-direction:column;gap:10px;
+  box-shadow:0 2px 12px rgba(0,0,0,.06);
+}
+.prof-rank-top{display:flex;justify-content:space-between;align-items:center}
+.prof-rank-name{font-size:17px;font-weight:800;color:var(--primary)}
+.prof-rank-xp{font-size:13px;font-weight:600;color:var(--t2)}
+.prof-xp-track{height:8px;background:#EEECEA;border-radius:4px;overflow:hidden}
+.prof-xp-fill{height:100%;background:linear-gradient(90deg,var(--primary),#8B7CF6);border-radius:4px;transition:width .7s cubic-bezier(.34,1.56,.64,1)}
+.prof-rank-next{font-size:11px;color:var(--t3);font-weight:600}
+.prof-section-title{font-size:12px;font-weight:800;color:var(--t2);letter-spacing:.8px;text-transform:uppercase;padding-top:2px}
+.prof-stats-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.prof-stat-card{
+  background:var(--surface);border-radius:16px;padding:14px;
+  display:flex;flex-direction:column;align-items:center;gap:4px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);
+}
+.prof-stat-icon{font-size:22px}
+.prof-stat-val{font-size:22px;font-weight:900;color:var(--t1);line-height:1.1}
+.prof-stat-lbl{font-size:11px;color:var(--t2);font-weight:600;text-align:center}
+.prof-badges-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;padding-bottom:8px}
+.prof-badge{
+  background:var(--surface);border-radius:16px;padding:14px 8px;
+  display:flex;flex-direction:column;align-items:center;gap:5px;
+  box-shadow:0 2px 8px rgba(0,0,0,.05);position:relative;
+}
+.prof-badge.locked{opacity:.4;filter:grayscale(.7)}
+.prof-badge-icon{font-size:28px}
+.prof-badge-name{font-size:10px;font-weight:700;color:var(--t1);text-align:center;line-height:1.3}
+.prof-badge-desc{font-size:9px;color:var(--t2);text-align:center;line-height:1.3}
+.prof-badge-lock{position:absolute;top:6px;right:8px;font-size:10px}
+.home-topbar{width:100%;display:flex;justify-content:flex-end;padding-top:18px}
+.btn-prof-icon{background:var(--surface);border:none;border-radius:20px;padding:8px 14px;font-size:13px;font-weight:700;color:var(--primary);cursor:pointer;box-shadow:0 2px 8px rgba(0,0,0,.08);font-family:inherit;transition:transform .12s}
+.btn-prof-icon:hover{transform:scale(1.04)}
+.btn-prof-icon:active{transform:scale(.96)}
+
+/* ═══════════════════════════════════════ SHARE */
+#share{background:#0E0E14;display:flex;flex-direction:column}
+.share-hdr{
+  display:flex;align-items:center;gap:10px;
+  padding:16px 16px 12px;
+  background:rgba(255,255,255,.04);
+  border-bottom:1px solid rgba(255,255,255,.07);
+  flex-shrink:0;
+}
+.share-hdr .nav-back{color:rgba(255,255,255,.6)}
+.share-hdr .nav-title{color:rgba(255,255,255,.85)}
+.share-container{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:20px 24px 44px;gap:24px}
+.share-card{
+  width:100%;background:linear-gradient(145deg,#1C1A38 0%,#0E0E1C 100%);
+  border-radius:28px;padding:30px 24px 24px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  border:1px solid rgba(255,255,255,.09);
+  box-shadow:0 12px 48px rgba(0,0,0,.6);
+  position:relative;overflow:hidden;
+}
+.share-card::before{
+  content:'';position:absolute;top:-80px;right:-50px;
+  width:220px;height:220px;border-radius:50%;
+  background:radial-gradient(circle,rgba(83,73,183,.25) 0%,transparent 70%);
+  pointer-events:none;
+}
+.sc-logo{font-size:15px;font-weight:900;color:rgba(255,255,255,.45);letter-spacing:1.5px;text-transform:uppercase}
+.sc-title{font-size:12px;font-weight:700;letter-spacing:1.8px;text-transform:uppercase;color:rgba(255,255,255,.35)}
+.sc-stars{font-size:30px;letter-spacing:5px}
+.sc-score{font-size:60px;font-weight:900;color:#fff;letter-spacing:-2px;font-variant-numeric:tabular-nums;line-height:1.05}
+.sc-score-lbl{font-size:11px;color:rgba(255,255,255,.3);font-weight:600;margin-top:-6px}
+.sc-cat{
+  background:rgba(255,255,255,.07);border-radius:12px;
+  padding:8px 16px;font-size:13px;font-weight:700;color:rgba(255,255,255,.75);
+}
+.sc-divider{width:36px;height:1px;background:rgba(255,255,255,.1)}
+.sc-footer{font-size:11px;color:rgba(255,255,255,.18);font-weight:600;letter-spacing:.5px}
+.share-actions{width:100%;display:flex;flex-direction:column;gap:10px}
+.btn-save{background:var(--primary);color:#fff;border:none;border-radius:16px;padding:16px;font-size:16px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;transition:transform .12s;box-shadow:0 4px 20px rgba(83,73,183,.45)}
+.btn-save:hover{transform:scale(1.02)}
+.btn-save:active{transform:scale(.97)}
+.btn-share-ghost{background:rgba(255,255,255,.05);color:rgba(255,255,255,.55);border:1.5px solid rgba(255,255,255,.1);border-radius:16px;padding:14px;font-size:15px;font-weight:700;cursor:pointer;font-family:inherit;width:100%;transition:background .2s}
+.btn-share-ghost:hover{background:rgba(255,255,255,.09)}
+
+/* ═══════════════════════════════════════ WELCOME */
+#welcome{
+  background:linear-gradient(170deg,#0E0C1C 0%,#1A1535 60%,#0B0B14 100%);
+  align-items:center;justify-content:space-between;
+  padding:0 32px 52px;
+}
+.wlc-hero{
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;gap:14px;
+  padding-top:24px;
+}
+.wlc-logo{font-size:80px;line-height:1;animation:pulse 2.4s ease-in-out infinite}
+.wlc-title{
+  font-size:42px;font-weight:900;letter-spacing:-1.5px;
+  background:linear-gradient(135deg,#8B7CF6,#5349B7);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent;
+  background-clip:text;
+}
+.wlc-tagline{
+  font-size:16px;color:rgba(255,255,255,.45);
+  letter-spacing:.4px;text-align:center;font-style:italic;
+}
+.wlc-rules{
+  display:flex;flex-direction:column;gap:14px;
+  background:rgba(255,255,255,.05);border-radius:20px;
+  padding:22px 20px;border:1px solid rgba(255,255,255,.08);
+  width:100%;
+}
+.wlc-rule{
+  display:flex;align-items:flex-start;gap:13px;
+}
+.wlc-rule-icon{
+  width:36px;height:36px;border-radius:12px;
+  background:rgba(83,73,183,.35);flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:18px;
+}
+.wlc-rule-text{
+  font-size:14px;color:rgba(255,255,255,.75);line-height:1.5;
+  padding-top:7px;font-weight:500;
+}
+.wlc-bottom{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
+.btn-wlc{
+  width:100%;background:var(--primary);color:#fff;border:none;
+  border-radius:18px;padding:20px;font-size:18px;font-weight:700;
+  letter-spacing:.3px;cursor:pointer;font-family:inherit;
+  box-shadow:0 6px 28px rgba(83,73,183,.5);
+  transition:transform .14s,box-shadow .14s;
+}
+.btn-wlc:hover{transform:scale(1.02);box-shadow:0 8px 32px rgba(83,73,183,.6)}
+.btn-wlc:active{transform:scale(.97)}
+.wlc-note{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:.3px}
+
+/* ═══════════════════════════════════════ MOBILE */
+@media(max-width:430px){
+  body{background:var(--bg);align-items:flex-start}
+  #phone{border-radius:0;width:100vw;height:100dvh;box-shadow:none}
+}
+</style>
+</head>
+<body>
+<div id="phone">
+
+<!-- ══ WELCOME ═══════════════════════════════════════════════════════════ -->
+<div id="welcome" class="screen">
+  <div class="wlc-hero">
+    <div class="wlc-logo">⚡</div>
+    <div class="wlc-title">WizzPop</div>
+    <div class="wlc-tagline">Gioca. Impara. Sorprenditi.</div>
+  </div>
+  <div class="wlc-rules">
+    <div class="wlc-rule">
+      <div class="wlc-rule-icon">🔲</div>
+      <div class="wlc-rule-text">Abbina due celle con lo stesso simbolo.</div>
+    </div>
+    <div class="wlc-rule">
+      <div class="wlc-rule-icon">🧠</div>
+      <div class="wlc-rule-text">Dopo ogni match rispondi a una domanda di cultura generale.</div>
+    </div>
+    <div class="wlc-rule">
+      <div class="wlc-rule-icon">⚡</div>
+      <div class="wlc-rule-text">Più risposte corrette = più punti e combo!</div>
+    </div>
+  </div>
+  <div class="wlc-bottom">
+    <button class="btn-wlc" id="btn-welcome">Inizia a giocare →</button>
+    <div class="wlc-note">Beta v0.1 — Preview</div>
+  </div>
+</div>
+
+<!-- ══ HOME ══════════════════════════════════════════════════════════════ -->
+<div id="home" class="screen">
+  <div class="home-topbar">
+    <button class="btn-prof-icon" id="btn-profile">👤 Profilo</button>
+  </div>
+  <div class="home-hero">
+    <div class="logo-emoji" id="logo-emoji">⚡</div>
+    <div class="logo-title"   id="logo-title">WizzPop</div>
+    <div class="logo-tagline" id="logo-tagline">Gioca. Impara. Sorprenditi.</div>
+  </div>
+  <div class="home-bottom">
+    <button class="btn-play" id="btn-play">▶&nbsp;&nbsp;Gioca ora</button>
+    <button class="btn-map"  id="btn-map">🗺&nbsp;&nbsp;Mappa del Sapere</button>
+    <div class="home-ver" id="home-ver">Beta v0.1 — Preview</div>
+  </div>
+</div>
+
+<!-- ══ WORLD MAP ═════════════════════════════════════════════════════════ -->
+<div id="worldmap" class="screen">
+  <div class="wm-hdr">
+    <button class="nav-back" id="wm-back">←</button>
+    <div class="nav-title">Mappa del Sapere</div>
+  </div>
+  <div class="wm-body" id="wm-body"></div>
+</div>
+
+<!-- ══ LEVEL SELECT ══════════════════════════════════════════════════════ -->
+<div id="levels" class="screen">
+  <div class="lv-hero">
+    <button class="lv-back" id="lv-back">←</button>
+    <div class="lv-world-name" id="lv-world-name">Origini</div>
+    <div class="lv-world-desc" id="lv-world-desc">Preistoria, miti, prime civiltà</div>
+    <svg class="lv-wave" viewBox="0 0 390 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M0,28 C65,58 130,4 195,30 C260,56 325,8 390,28 L390,52 L0,52 Z" fill="#F8F7F2"/>
+    </svg>
+  </div>
+  <div class="lv-body">
+    <div class="lv-path" id="lv-path"></div>
+    <div class="lv-legend">
+      <div class="lv-leg-item"><div class="lv-leg-dot" style="background:linear-gradient(135deg,#7BC95A,#4E9B2B)"></div>Facile</div>
+      <div class="lv-leg-item"><div class="lv-leg-dot" style="background:linear-gradient(135deg,#FF9F45,#D4690D)"></div>Medio</div>
+      <div class="lv-leg-item"><div class="lv-leg-dot" style="background:linear-gradient(135deg,#8B7CF6,var(--primary))"></div>Boss 👑</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CINEMATIC ══════════════════════════════════════════════════════════ -->
+<div id="cinematic" class="screen">
+  <canvas id="cin-canvas" width="390" height="844"></canvas>
+  <div class="cin-bar cin-bar-top"></div>
+  <div class="cin-bar cin-bar-bot"></div>
+  <div class="cin-content">
+    <div class="cin-era"    id="cin-era"></div>
+    <div class="cin-divider" id="cin-div"></div>
+    <div class="cin-text"   id="cin-text"></div>
+    <div class="cin-author" id="cin-author"></div>
+    <div class="cin-ctx"    id="cin-ctx"></div>
+  </div>
+  <div class="cin-footer" id="cin-footer">
+    <div class="cin-prog-track"><div class="cin-prog-fill" id="cin-prog-fill"></div></div>
+    <div class="cin-skip">Tocca per continuare</div>
+  </div>
+</div>
+
+<!-- ══ GAME ══════════════════════════════════════════════════════════════ -->
+<div id="game" class="screen">
+  <div class="score-bar">
+    <button class="nav-back" id="btn-back">←</button>
+    <div class="lives" id="lives"></div>
+    <div class="score-num" id="score">0</div>
+    <div class="combo-badge" id="combo">×2</div>
+  </div>
+  <div class="legend" id="legend"></div>
+  <div class="grid-wrap"><div class="grid" id="grid"></div></div>
+  <div class="prog-area">
+    <div class="prog-label" id="prog-label">0/10 coppie</div>
+    <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<!-- ══ RESULT ════════════════════════════════════════════════════════════ -->
+<div id="result" class="screen">
+  <div class="res-top">
+    <div class="confetti-burst" id="confetti"></div>
+    <div class="res-outcome"   id="res-outcome"></div>
+    <div class="res-stars-row">
+      <span class="res-star" id="rs1">⭐</span>
+      <span class="res-star" id="rs2">⭐</span>
+      <span class="res-star" id="rs3">⭐</span>
+    </div>
+    <div class="res-title" id="res-title"></div>
+  </div>
+  <div class="res-body">
+    <div class="res-msg"       id="res-msg"></div>
+    <div class="res-score-card">
+      <div class="res-score-val" id="res-score-val">0</div>
+      <div class="res-score-lbl">punti guadagnati</div>
+    </div>
+    <div class="res-xp"   id="res-xp"></div>
+    <div class="res-stats">
+      <div class="res-stat"><div class="res-stat-val" id="r-pairs">–</div><div class="res-stat-lbl">coppie</div></div>
+      <div class="res-sep">·</div>
+      <div class="res-stat"><div class="res-stat-val" id="r-errors">–</div><div class="res-stat-lbl">errori</div></div>
+    </div>
+  </div>
+  <div class="res-btns">
+    <button class="btn-f btn-pri"   id="btn-next">Prossimo livello →</button>
+    <button class="btn-f btn-sec"   id="btn-replay">↺&nbsp; Rigioca</button>
+    <button class="btn-f btn-ghost" id="btn-share">📤&nbsp; Condividi risultato</button>
+    <button class="btn-f btn-ghost" id="btn-to-lvls">← Livelli</button>
+  </div>
+</div>
+
+<!-- ══ PROFILE ═══════════════════════════════════════════════════════════ -->
+<div id="profile" class="screen">
+  <div class="wm-hdr">
+    <button class="nav-back" id="prof-back">←</button>
+    <div class="nav-title">Profilo</div>
+  </div>
+  <div class="prof-body">
+    <div class="prof-identity">
+      <div class="prof-avatar-big" id="prof-avatar-display">🦁</div>
+      <div class="prof-username" id="prof-username">Esploratore</div>
+      <div class="prof-avatar-row" id="prof-avatar-row"></div>
+    </div>
+    <div class="prof-rank-card">
+      <div class="prof-rank-top">
+        <div class="prof-rank-name" id="prof-rank-name">Curioso</div>
+        <div class="prof-rank-xp"  id="prof-rank-xp">0 / 500 XP</div>
+      </div>
+      <div class="prof-xp-track"><div class="prof-xp-fill" id="prof-xp-fill" style="width:0%"></div></div>
+      <div class="prof-rank-next" id="prof-rank-next">Prossimo rango: Esploratore</div>
+    </div>
+    <div class="prof-section-title">Statistiche</div>
+    <div class="prof-stats-grid">
+      <div class="prof-stat-card">
+        <div class="prof-stat-icon">🎮</div>
+        <div class="prof-stat-val" id="pst-games">–</div>
+        <div class="prof-stat-lbl">partite giocate</div>
+      </div>
+      <div class="prof-stat-card">
+        <div class="prof-stat-icon">✅</div>
+        <div class="prof-stat-val" id="pst-pct">–</div>
+        <div class="prof-stat-lbl">risposte esatte</div>
+      </div>
+      <div class="prof-stat-card">
+        <div class="prof-stat-icon">🏆</div>
+        <div class="prof-stat-val" id="pst-cat">–</div>
+        <div class="prof-stat-lbl">categoria forte</div>
+      </div>
+      <div class="prof-stat-card">
+        <div class="prof-stat-icon">🔥</div>
+        <div class="prof-stat-val" id="pst-streak">–</div>
+        <div class="prof-stat-lbl">giorni streak</div>
+      </div>
+    </div>
+    <div class="prof-section-title">Badge</div>
+    <div class="prof-badges-grid" id="prof-badges-grid"></div>
+  </div>
+</div>
+
+<!-- ══ SHARE ══════════════════════════════════════════════════════════════ -->
+<div id="share" class="screen">
+  <div class="share-hdr wm-hdr">
+    <button class="nav-back" id="share-back" style="color:rgba(255,255,255,.6)">←</button>
+    <div class="nav-title" style="color:rgba(255,255,255,.85)">Condividi risultato</div>
+  </div>
+  <div class="share-container">
+    <div class="share-card">
+      <div class="sc-logo">⚡ WizzPop</div>
+      <div class="sc-title" id="sc-title">Livello completato</div>
+      <div class="sc-stars" id="sc-stars">⭐⭐⭐</div>
+      <div class="sc-score" id="sc-score">0</div>
+      <div class="sc-score-lbl">punti</div>
+      <div class="sc-divider"></div>
+      <div class="sc-cat" id="sc-cat">🌍 Categoria forte: Geografia</div>
+      <div class="sc-divider"></div>
+      <div class="sc-footer">wizzpop.app</div>
+    </div>
+    <div class="share-actions">
+      <button class="btn-save" id="btn-save-img">📷&nbsp; Salva immagine</button>
+      <button class="btn-share-ghost" id="btn-share-back">← Torna ai risultati</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ QUESTION MODAL ════════════════════════════════════════════════════ -->
+<div class="overlay" id="overlay">
+  <div class="modal-sheet">
+    <div class="handle"></div>
+    <div class="cat-badge"  id="cat-badge"></div>
+    <div class="timer-track"><div class="timer-fill" id="timer-fill"></div></div>
+    <div class="q-text"     id="q-text"></div>
+    <div class="options"    id="options"></div>
+    <div class="fact-box"   id="fact-box">
+      <div class="fact-tag">Lo sapevi?</div>
+      <div class="fact-result" id="fact-result"></div>
+      <div class="fact-body"   id="fact-body"></div>
+      <button class="btn-cont" id="btn-cont">Continua →</button>
+    </div>
+  </div>
+</div>
+
+</div><!-- #phone -->
+<script>
+"use strict";
+// ════════════════════════════════════════════════════════ WELCOME
+(function(){
+  const welcomed = localStorage.getItem('wizzpop_welcomed');
+  if(!welcomed){
+    document.getElementById('welcome').classList.add('active');
+  } else {
+    document.getElementById('home').classList.add('active');
+  }
+  document.getElementById('btn-welcome').addEventListener('click', function(){
+    localStorage.setItem('wizzpop_welcomed','1');
+    showScreen('home');
+  });
+})();
+
+// ════════════════════════════════════════════════════════ DATA
+
+const CATS = {
+  geo: {emoji:'🌍',label:'Geografia',   bg:'#E6F1FB',fg:'#0C447C'},
+  sci: {emoji:'⚗️',label:'Scienza',     bg:'#EAF3DE',fg:'#27500A'},
+  art: {emoji:'🎨',label:'Arte & Lett.',bg:'#EEEDFE',fg:'#3C3489'},
+  hist:{emoji:'⚔️',label:'Storia',      bg:'#FAEEDA',fg:'#633806'},
+  wild:{emoji:'⭐',label:'Cultura Gen.',bg:'#FBEAF0',fg:'#72243E'},
+};
+const CKEYS = Object.keys(CATS);
+
+// Tutte 50 domande (10 per categoria)
+const QUESTIONS=[
+  // ── GEOGRAFIA ──────────────────────────────────────────────────
+  {cat:'geo',text:'Qual è il paese più grande del mondo per superficie?',
+   opts:['Canada','Russia','Cina','USA'],ok:1,
+   fact:'La Russia copre 17,1 milioni di km² — più del doppio del Canada. Si estende su 11 fusi orari.'},
+  {cat:'geo',text:'Qual è il fiume più lungo del mondo?',
+   opts:['Amazzonia','Nilo','Mississippi','Congo'],ok:1,
+   fact:'Il Nilo si estende per 6.650 km attraversando 11 paesi africani. La sua inondazione annuale rese possibile la civiltà egizia.'},
+  {cat:'geo',text:'In quale continente si trova il deserto più grande del mondo?',
+   opts:['Africa','Asia','Antartide','Australia'],ok:2,
+   fact:'Il deserto più grande è quello antartico (14,2 milioni di km²). Il Sahara è il più grande deserto caldo — la distinzione conta!'},
+  {cat:'geo',text:'Qual è il punto più profondo degli oceani?',
+   opts:['Fossa delle Marianne','Fossa di Porto Rico','Fossa delle Tonga','Fossa del Giappone'],ok:0,
+   fact:"La Fossa delle Marianne scende a 11.034 metri (Challenger Deep). Se ci piazzassimo l'Everest, la sua cima resterebbe ancora 2 km sotto la superficie. La pressione è 1.000 volte quella atmosferica — eppure ci vivono creature. Solo 3 persone ci sono mai scese."},
+  {cat:'geo',text:'Quale paese ha più piramidi al mondo?',
+   opts:['Egitto','Messico','Sudan','Perù'],ok:2,
+   fact:"Il Sudan ha circa 200-255 piramidi — quasi il doppio dell'Egitto. Appartengono al regno di Kush, una civiltà africana che prosperò parallelamente all'Egitto e lo conquistò. Le piramidi nubiane sono più strette e ripide: le hai viste in un documentario e probabilmente pensavi fossero egiziane."},
+  {cat:'geo',text:'Qual è il paese più piccolo del mondo?',
+   opts:['Monaco','San Marino','Liechtenstein','Città del Vaticano'],ok:3,
+   fact:'Il Vaticano copre 0,44 km² — più piccolo di qualsiasi comune italiano. Eppure ha un proprio stato, esercito (la Guardia Svizzera), moneta, radio, ferrovia e osservatorio astronomico. Al tempo stesso uno dei più influenti nella storia.'},
+  {cat:'geo',text:'Qual è la capitale più alta del mondo per altitudine?',
+   opts:['Quito','Bogotà','La Paz','Kathmandu'],ok:2,
+   fact:"La Paz, sede del governo boliviano, si trova a 3.640 metri — più in alto del Monte Rosa. L'aria contiene il 40% in meno di ossigeno. Le squadre di calcio straniere soffrono il mal di montagna appena atterrano, e la Bolivia in casa è quasi imbattibile."},
+  {cat:'geo',text:'A che velocità si muovono i continenti ogni anno?',
+   opts:['Meno di 1 mm','2-5 cm','20-30 cm','Oltre 1 metro'],ok:1,
+   fact:"I continenti si muovono a 2-5 cm l'anno — la stessa velocità delle tue unghie che crescono. In 250 milioni di anni si formerà un nuovo supercontinente chiamato Amasia. Le Alpi crescono ancora di qualche millimetro perché l'Italia spinge contro l'Europa."},
+  {cat:'geo',text:'Quale città ha più grattacieli di New York?',
+   opts:['Dubai','Hong Kong','Shanghai','Tokyo'],ok:1,
+   fact:"Hong Kong ha circa 560 edifici oltre i 150 metri — più del doppio di New York. L'alta densità di popolazione e il territorio montuoso hanno costretto la città a costruire verticalmente come nessun'altra al mondo. Vista dal mare di notte è tra le skyline più spettacolari del pianeta."},
+  {cat:'geo',text:'Quale paese africano non fu mai colonizzato dalle potenze europee?',
+   opts:['Nigeria','Etiopia','Kenya','Ghana'],ok:1,
+   fact:"L'Etiopia è l'unico paese africano subsahariano a non essere mai stato colonizzato. Sconfisse l'Italia nella battaglia di Adua nel 1896 — la prima grande vittoria di un esercito africano su una potenza europea moderna. Mussolini si vendicò nel 1935, ma l'occupazione durò solo 5 anni."},
+
+  // ── SCIENZA ────────────────────────────────────────────────────
+  {cat:'sci',text:'Quanti pianeti ha il sistema solare?',
+   opts:['7','8','9','10'],ok:1,
+   fact:"Dal 2006 Plutone è un 'pianeta nano'. I pianeti ufficiali sono 8, da Mercurio a Nettuno. Prima della declassificazione erano 9."},
+  {cat:'sci',text:"Qual è l'elemento chimico più abbondante nell'universo?",
+   opts:['Ossigeno','Carbonio','Idrogeno','Elio'],ok:2,
+   fact:"L'idrogeno costituisce circa il 75% della massa visibile dell'universo. Le stelle, incluso il sole, bruciano idrogeno."},
+  {cat:'sci',text:'In quale anno fu scoperta la penicillina?',
+   opts:['1895','1908','1928','1945'],ok:2,
+   fact:'Alexander Fleming la scoprì per caso nel 1928 notando che una muffa uccideva i batteri attorno a sé. Ha salvato centinaia di milioni di vite.'},
+  {cat:'sci',text:'Se srotolassi tutto il DNA del tuo corpo, quanto lungo sarebbe?',
+   opts:['70 km','700.000 km','70 miliardi di km','700 miliardi di km'],ok:2,
+   fact:'Ogni cellula contiene circa 2 metri di DNA ripiegati in uno spazio invisibile a occhio nudo. Con 37 trilioni di cellule, il totale supera i 70 miliardi di km — abbastanza per andare al Sole e tornare 230 volte. Tutto dentro di te, adesso.'},
+  {cat:'sci',text:'Se il Sole si spegnesse ora, dopo quanto tempo ve ne accorgereste?',
+   opts:['Subito','8 secondi','8 minuti','8 ore'],ok:2,
+   fact:'La luce impiega 8 minuti e 20 secondi per coprire i 150 milioni di km tra Sole e Terra. Se si spegnesse ora, continuereste a vederlo splendere per altri 8 minuti. Ogni cosa che guardate in cielo è un messaggio dal passato — più è lontana, più è antica.'},
+  {cat:'sci',text:'Quanti cuori ha un polpo?',
+   opts:['1','2','3','5'],ok:2,
+   fact:'Il polpo ha tre cuori: due pompano il sangue verso le branchie, uno verso il resto del corpo. Il suo sangue è blu — usa il rame invece del ferro. Il cuore principale si ferma quando nuota: ecco perché i polpi preferiscono camminare sul fondo del mare.'},
+  {cat:'sci',text:'Quante ossa ha uno scheletro umano adulto?',
+   opts:['150','206','235','270'],ok:1,
+   fact:'I neonati nascono con circa 270 ossa, molte delle quali si fondono crescendo. Un adulto ne ha 206. La metà di tutte — 106 — si trovano solo in mani e piedi: la complessità evolutiva del camminare e manipolare oggetti.'},
+  {cat:'sci',text:'Quanto è più massiccio del Sole il buco nero al centro della Via Lattea?',
+   opts:['100 volte','10.000 volte','4 milioni di volte','1 miliardo di volte'],ok:2,
+   fact:"Sagittarius A* ha una massa pari a 4 milioni di soli. Nel 2022 è stato fotografato per la prima volta dall'Event Horizon Telescope — una rete di radiotelescopi che copre tutta la Terra. È a 26.000 anni luce da noi: ogni dato che lo riguarda è antico quanto l'uomo di Cro-Magnon."},
+  {cat:'sci',text:"Quanto DNA condivide l'essere umano con una banana?",
+   opts:['5%','25%','50%','85%'],ok:2,
+   fact:"Condividiamo il 50% del DNA con le banane — e il 98,7% con gli scimpanzé. Quel DNA in comune non ci rende 'metà banana': riguarda le funzioni cellulari di base che tutti gli esseri viventi condividono. Ma tecnicamente sei imparentato con la tua colazione."},
+  {cat:'sci',text:'Quale particella è responsabile di dare massa alla materia?',
+   opts:['Elettrone','Bosone di Higgs','Neutrino','Quark top'],ok:1,
+   fact:"Il bosone di Higgs fu teorizzato nel 1964 e trovato solo nel 2012 al CERN, dopo 50 anni di ricerca e il più grande strumento scientifico mai costruito: l'LHC, un tunnel di 27 km. Peter Higgs era così convinto di non vederlo in vita sua che quel giorno non aveva nemmeno il cellulare con sé."},
+
+  // ── STORIA ─────────────────────────────────────────────────────
+  {cat:'hist',text:'In quale anno cadde il Muro di Berlino?',
+   opts:['1987','1989','1991','1993'],ok:1,
+   fact:"Il 9 novembre 1989 i berlinesi iniziarono ad abbattere il muro che divideva la città dal 1961. Quel giorno cambiò la storia d'Europa."},
+  {cat:'hist',text:'Chi fu il primo uomo a camminare sulla Luna?',
+   opts:['Buzz Aldrin','Yuri Gagarin','Neil Armstrong','John Glenn'],ok:2,
+   fact:"Neil Armstrong posò piede sul suolo lunare il 20 luglio 1969. Le sue prime parole: 'Un piccolo passo per l'uomo, un grande balzo per l'umanità.'"},
+  {cat:'hist',text:'In quale luogo fu firmata la Magna Carta?',
+   opts:['Londra','Canterbury','Runnymede','Oxford'],ok:2,
+   fact:'La Magna Carta fu firmata a Runnymede nel 1215. Non era una città ma un prato sul Tamigi — il primo documento a limitare il potere del re.'},
+  {cat:'hist',text:"Quanti anni durò effettivamente la Guerra dei Cent'Anni?",
+   opts:['100','89','116','150'],ok:2,
+   fact:"La Guerra dei Cent'Anni durò 116 anni (1337–1453). Giovanna d'Arco, che ribaltò le sorti della guerra, aveva 17 anni quando guidò l'esercito francese — e fu bruciata viva a 19. Venne canonizzata santa 489 anni dopo."},
+  {cat:'hist',text:"In quale anno cadde l'Impero Romano d'Occidente?",
+   opts:['310 d.C.','410 d.C.','476 d.C.','565 d.C.'],ok:2,
+   fact:"Nel 476 d.C. il capo barbaro Odoacre depose Romolo Augustolo, l'ultimo imperatore. Era così poco importante che Odoacre non lo uccise: lo esiliò in una villa in Campania con una pensione. Mille anni di Roma finirono senza un colpo."},
+  {cat:'hist',text:'In quale isola fu esiliato definitivamente Napoleone Bonaparte?',
+   opts:['Corsica','Elba',"Sant'Elena",'Capri'],ok:2,
+   fact:"Sant'Elena è un'isola di 122 km² nell'Atlantico, a 1.800 km dalla costa africana. Per sorvegliare Napoleone, gli inglesi schierarono 2.000 soldati e tre navi da guerra. Morì lì a 51 anni — forse avvelenato dall'arsenico nelle vernici umide della sua stanza."},
+  {cat:'hist',text:"Quale fu l'impero più esteso della storia per territorio continuo?",
+   opts:['Impero Romano','Impero Britannico','Impero Mongolo','Impero Ottomano'],ok:2,
+   fact:"L'Impero Mongolo raggiunse i 24 milioni di km² nel 1270 — il 22% delle terre emerse del pianeta. Gengis Khan partì da una tribù di nomadi delle steppe. Oggi circa 1 uomo su 200 nel mondo porta il suo DNA."},
+  {cat:'hist',text:'Quale imperatore romano ordinò la costruzione del Colosseo?',
+   opts:['Giulio Cesare','Augusto','Vespasiano','Nerone'],ok:2,
+   fact:"Il Colosseo fu costruito in soli 8 anni (72–80 d.C.) da circa 60.000 schiavi ebrei deportati dopo la caduta di Gerusalemme. Aveva 80 ingressi e si svuotava in 15 minuti. Ospitava anche battaglie navali riempiendo l'arena con l'acqua di un acquedotto."},
+  {cat:'hist',text:'Chi fu assassinato nel 1914 scatenando la Prima Guerra Mondiale?',
+   opts:['Il Kaiser Guglielmo II',"L'Arciduca Franz Ferdinand",'Lo Zar Nicola II','Il Re Giorgio V'],ok:1,
+   fact:"Il 28 giugno 1914 a Sarajevo, Gavrilo Princip aveva già fallito un primo attentato quella mattina e si era fermato in una pasticceria. Per caso, l'auto di Franz Ferdinand cambiò percorso e gli passò davanti. Quel momento fortuito innescò una guerra che uccise 20 milioni di persone."},
+  {cat:'hist',text:'Qual era il vero cognome di Giuseppe Stalin?',
+   opts:['Ulyanov','Dzhugashvili','Bronstein','Rosenfeld'],ok:1,
+   fact:"Stalin, Lenin e Trotsky erano tutti pseudonimi. Il vero Lenin era Vladimir Ulyanov, il vero Trotsky era Lev Bronstein. 'Stalin' significa 'uomo d'acciaio' in russo. I tre protagonisti della rivoluzione che cambiò il mondo si erano inventati anche la propria identità."},
+
+  // ── ARTE & LETTERATURA ─────────────────────────────────────────
+  {cat:'art',text:'Chi dipinse la Cappella Sistina?',
+   opts:['Leonardo','Raffaello','Michelangelo','Botticelli'],ok:2,
+   fact:'Michelangelo completò il soffitto tra il 1508 e il 1512 lavorando sdraiato su ponteggi. Diceva di odiare la pittura — era uno scultore.'},
+  {cat:'art',text:'In quale paese nacque Mozart?',
+   opts:['Germania','Austria','Italia','Francia'],ok:1,
+   fact:'Wolfgang Amadeus Mozart nacque a Salisburgo nel 1756. Compose la sua prima sinfonia a 8 anni e morì a 35, lasciando oltre 600 opere.'},
+  {cat:'art',text:'Quale scrittore creò il personaggio di Don Chisciotte?',
+   opts:['Lope de Vega','Miguel de Cervantes','Calderón de la Barca','Francisco de Quevedo'],ok:1,
+   fact:'Cervantes pubblicò Don Chisciotte nel 1605. È considerato il primo romanzo moderno e il libro più tradotto dopo la Bibbia.'},
+  {cat:'art',text:'In quale museo si trova la Gioconda di Leonardo da Vinci?',
+   opts:['Uffizi, Firenze','Louvre, Parigi','National Gallery, Londra','Prado, Madrid'],ok:1,
+   fact:"La Gioconda è esposta in una sala dedicata al Louvre e attrae 6 milioni di visitatori l'anno. È protetta da un vetro antiproiettile. Misura appena 77×53 cm — la maggior parte dei visitatori rimane delusa da quanto sia piccola."},
+  {cat:'art',text:'Chi compose la Quinta Sinfonia, famosa per le quattro note iniziali?',
+   opts:['Bach','Beethoven','Haydn','Brahms'],ok:1,
+   fact:'Beethoven compose la Quinta Sinfonia tra il 1804 e il 1808 mentre stava diventando sordo. Alla prima esecuzione era già quasi privo di udito e dovette essere girato per vedere gli applausi. Compose alcune delle più grandi musiche della storia senza poterle sentire.'},
+  {cat:'art',text:'Chi progettò la cupola del Duomo di Firenze?',
+   opts:['Michelangelo','Filippo Brunelleschi','Donato Bramante','Giotto'],ok:1,
+   fact:'Brunelleschi costruì la cupola (1420-1436) senza centine di legno — un problema insolubile da 100 anni. Inventò anche una macchina per sollevare i materiali e la prospettiva lineare. È ancora oggi la più grande cupola in muratura del mondo. Fu costruita senza nessun progetto scritto.'},
+  {cat:'art',text:'Chi compose Le Quattro Stagioni?',
+   opts:['Johann Sebastian Bach','Georg Friedrich Händel','Antonio Vivaldi','Arcangelo Corelli'],ok:2,
+   fact:'Vivaldi compose Le Quattro Stagioni nel 1723 a Venezia. Per secoli furono considerate opere minori e quasi dimenticate. Vivaldi morì in povertà nel 1741 e fu sepolto in una fossa comune. Oggi sono il brano di musica classica più eseguito al mondo.'},
+  {cat:'art',text:"Chi aggiunse la parola 'Divina' nel titolo della Divina Commedia?",
+   opts:['Dante stesso','Papa Bonifacio VIII','Giovanni Boccaccio','Francesco Petrarca'],ok:2,
+   fact:"Dante intitolò la sua opera semplicemente 'Commedia'. Fu Boccaccio, suo primo grande ammiratore, ad aggiungere 'Divina' circa trent'anni dopo la morte di Dante. L'italiano letterario che parliamo oggi è in gran parte la lingua che Dante inventò in quel libro."},
+  {cat:'art',text:"Qual è l'opera d'arte più cara mai venduta all'asta?",
+   opts:['Ninfee di Monet','Salvator Mundi di Leonardo',"Les Femmes d'Alger di Picasso",'Ritratto di Adele di Klimt'],ok:1,
+   fact:"Il Salvator Mundi attribuito a Leonardo fu venduto nel 2017 per 450 milioni di dollari. Nel 1958 era stato battuto all'asta per appena 60 dollari, considerato un dipinto minore. Si dice che oggi si trovi su uno yacht nel Mediterraneo e non venga mostrato al pubblico."},
+  {cat:'art',text:'Quale pittore fiammingo del XV secolo fu il pioniere della pittura a olio?',
+   opts:['Albrecht Dürer','Jan van Eyck','Hans Holbein','Rogier van der Weyden'],ok:1,
+   fact:"Jan van Eyck sviluppò la pittura a olio permettendo colori profondi e dettagli microscopici impossibili a tempera. Il suo Polittico dell'Agnello Mistico è il dipinto più rubato della storia: sottratto 13 volte. Un pannello scomparve nel 1934 e non è mai stato ritrovato."},
+
+  // ── CULTURA GENERALE ───────────────────────────────────────────
+  {cat:'wild',text:'Quante corde ha un violino?',
+   opts:['4','5','6','3'],ok:0,
+   fact:"Le 4 corde (Sol, Re, La, Mi) sono accordate per quinte. Il suono del violino è prodotto dall'archetto che fa vibrare le corde tramite la resina."},
+  {cat:'wild',text:'Quale animale è il più veloce sulla terra?',
+   opts:['Leone','Ghepardo','Visone','Antilope'],ok:1,
+   fact:'Il ghepardo raggiunge i 120 km/h in 3 secondi — più veloce di una Ferrari in accelerazione. Ma può mantenerlo solo per 30 secondi.'},
+  {cat:'wild',text:'In quale paese è stato inventato il gioco degli scacchi?',
+   opts:['Cina','Persia','India','Arabia'],ok:2,
+   fact:"Gli scacchi nacquero in India intorno al VI sec. d.C. come 'Chaturanga'. Arrivarono in Europa attraverso la Persia e il mondo arabo."},
+  {cat:'wild',text:'Quante ore al giorno dorme un koala?',
+   opts:['8 ore','12 ore','16 ore','22 ore'],ok:3,
+   fact:"I koala dormono fino a 22 ore al giorno. Non è pigrizia: le foglie di eucalipto, la loro unica fonte di cibo, sono tossiche e poco nutritive. Dormire è il modo più efficiente per gestire l'energia. Svegli, sono abbastanza aggressivi."},
+  {cat:'wild',text:'Quante lingue diverse si parlano nel mondo?',
+   opts:['700','2.000','7.000','15.000'],ok:2,
+   fact:'Nel mondo esistono circa 7.000 lingue. Metà della popolazione mondiale ne parla solo 23. Una lingua muore ogni due settimane. Il Papua Nuova Guinea da solo ha 840 lingue — più del 10% di tutte quelle del pianeta in un paese di 8 milioni di abitanti.'},
+  {cat:'wild',text:'In quale anno fu brevettato il telefono?',
+   opts:['1856','1876','1901','1912'],ok:1,
+   fact:"Alexander Graham Bell brevettò il telefono nel 1876 a 29 anni. La prima frase pronunciata fu: 'Signor Watson, venga qui, ho bisogno di lei.' Bell stesso, però, si rifiutò di avere un telefono nel suo studio: lo considerava un'intrusione nel lavoro."},
+  {cat:'wild',text:"Quale animale è l'unico mammifero che non riesce a saltare?",
+   opts:['Elefante','Rinoceronte','Ippopotamo','Orso polare'],ok:0,
+   fact:"Le zampe dell'elefante non sono costruite per staccarsi da terra con 6 tonnellate di peso. In compenso sa nuotare per chilometri usando la proboscide come snorkel, e riconosce il proprio riflesso allo specchio — una capacità condivisa solo con scimpanzé, delfini e umani."},
+  {cat:'wild',text:'Quante email vengono inviate nel mondo ogni giorno?',
+   opts:['500 milioni','5 miliardi','300 miliardi','2 trilioni'],ok:2,
+   fact:'Ogni giorno vengono inviate circa 300 miliardi di email. Il 45% è spam. La email esiste dal 1971 — più vecchia di internet come lo conosciamo oggi. Il primo messaggio email fu inviato da Ray Tomlinson a se stesso. Non ricordava cosa ci aveva scritto.'},
+  {cat:'wild',text:'Quante volte sbattiamo le palpebre ogni giorno?',
+   opts:['2.000 volte','7.000 volte','15.000 volte','30.000 volte'],ok:2,
+   fact:"Sbattiamo le palpebre circa 15.000 volte al giorno — ogni 4-6 secondi. Nel corso di una vita equivale a oltre un anno con gli occhi chiusi. Il cervello 'spegne' l'elaborazione visiva durante ogni battito per non farti notare il buio: lo fa senza che tu lo sappia, da sempre."},
+  {cat:'wild',text:'Quante lingue diverse si parlano solo in Papua Nuova Guinea?',
+   opts:['120','340','840','1.600'],ok:2,
+   fact:'Papua Nuova Guinea ha 840 lingue in un paese di 8 milioni di abitanti — villaggi a pochi km di distanza che non si capiscono tra loro. È il paese linguisticamente più diverso del pianeta. Il tok pisin, una lingua creola nata nel XIX secolo, serve da lingua comune nazionale.'},
+];
+
+// 8 citazioni cinematiche, mai consecutive uguali
+const CIN_QUOTES=[
+  {era:'Grecia Antica · V sec. a.C.',
+   text:'So di non sapere.',
+   author:'Socrate',ctx:'Apologia di Socrate, Platone',color:'#3498DB'},
+  {era:'Roma Antica · I sec. a.C.',
+   text:'Veni, vidi, vici.',
+   author:'Giulio Cesare',ctx:'Annuncio della vittoria a Zela, 47 a.C.',color:'#FF6B2B'},
+  {era:'Grecia Antica · IV sec. a.C.',
+   text:'Il saggio non dice tutto ciò che pensa, ma pensa tutto ciò che dice.',
+   author:'Aristotele',ctx:'Etica Nicomachea',color:'#4A90D9'},
+  {era:'Cina Antica · V sec. a.C.',
+   text:'Chi studia senza pensare perde il suo tempo.\nChi pensa senza studiare si mette in pericolo.',
+   author:'Confucio',ctx:'Dialoghi, II.15',color:'#E74C3C'},
+  {era:'Roma Imperiale · II sec. d.C.',
+   text:'Non sprecare quel che rimane della vita\nin pensieri su altre persone.',
+   author:'Marco Aurelio',ctx:'Meditazioni, III.4',color:'#D4AF37'},
+  {era:'Rinascimento · XV sec.',
+   text:"L'acqua è la forza trainante di tutta la natura.",
+   author:'Leonardo da Vinci',ctx:'Taccuini — circa 1490',color:'#27AE60'},
+  {era:'Illuminismo · 1784',
+   text:'Osa sapere.',
+   author:'Immanuel Kant',ctx:"Che cos'è l'Illuminismo? (1784)",color:'#40E0D0'},
+  {era:'Cina Antica · VI sec. a.C.',
+   text:'Un viaggio di mille miglia\ncomincia con un singolo passo.',
+   author:'Lao Tzu',ctx:'Tao Te Ching, 64',color:'#2ECC71'},
+];
+
+// Mondi
+const WORLDS=[
+  {id:'origini', name:'Origini',        icon:'🌅',desc:'Preistoria, miti, prime civiltà',  total:5,locked:false,circClass:'active'},
+  {id:'civilta', name:'Civiltà Antiche',icon:'🏛️',desc:'Grecia, Roma, Egitto',              total:5,locked:true, circClass:'w2'},
+  {id:'mediterr',name:'Mediterraneo',   icon:'⚓',desc:'Fenici, Islam, Bisanzio',            total:5,locked:true, circClass:'w3'},
+  {id:'viaseta', name:'Via della Seta', icon:'🐉',desc:'Cina, India, Mongoli',              total:5,locked:true, circClass:'w4'},
+  {id:'rinasc',  name:'Rinascimento',   icon:'🎭',desc:'Arte, Scienza, Scoperte',            total:5,locked:true, circClass:'w5'},
+];
+
+// Posizioni nodi worldmap (centro, in 390×700)
+const WM_POS=[[100,618],[270,482],[108,348],[268,214],[184,88]];
+
+// Configurazione livelli Mondo 1
+const LEVEL_CFGS={
+  origini:[
+    {n:1,pairs:5, lives:3,diff:1,type:'easy',  name:'Primo Passo'},
+    {n:2,pairs:8, lives:3,diff:1,type:'easy',  name:'Curioso'},
+    {n:3,pairs:10,lives:3,diff:2,type:'medium',name:'Pensatore'},
+    {n:4,pairs:8, lives:3,diff:1,type:'easy',  name:'Respiro'},
+    {n:5,pairs:12,lives:2,diff:2,type:'boss',  name:'Il Boss'},
+  ],
+};
+
+// Posizioni nodi livelli (SVG 0 0 350 290)
+// Snake: L1(55,240)→L2(178,240)→L3(300,240), curva su, L4(300,90), L5(178,90)
+const LV_POS={1:[55,240],2:[178,240],3:[300,240],4:[300,90],5:[178,90]};
+
+// ════════════════════════════════════════════════════════ PROGRESS
+
+function loadProg(){try{return JSON.parse(localStorage.getItem('wz2')||'{}')}catch{return {}}}
+function saveProg(p){localStorage.setItem('wz2',JSON.stringify(p))}
+function getLvP(wid,n){const p=loadProg();return(p[wid]||{})[n]||null}
+function setLvP(wid,n,stars,score){
+  const p=loadProg();
+  if(!p[wid])p[wid]={};
+  const ex=p[wid][n]||{stars:0,score:0};
+  p[wid][n]={stars:Math.max(ex.stars,stars),score:Math.max(ex.score,score)};
+  saveProg(p);
+}
+function isUnlocked(wid,n){
+  if(n===1)return true;
+  const prev=getLvP(wid,n-1);
+  return prev!==null&&prev.stars>0;
+}
+function worldDone(wid){
+  return(LEVEL_CFGS[wid]||[]).filter(c=>{const p=getLvP(wid,c.n);return p&&p.stars>0}).length;
+}
+
+// ════════════════════════════════════════════════════════ STATE
+
+let nav={worldId:'origini',levelN:1};
+let gs;
+
+function $(id){return document.getElementById(id)}
+function showScreen(id){
+  document.querySelectorAll('.screen').forEach(s=>s.classList.remove('active'));
+  $(id).classList.add('active');
+}
+
+// ════════════════════════════════════════════════════════ HOME ANIMATION
+
+const HOME_ELS=[
+  {id:'logo-emoji',  delay:0,   scale:true},
+  {id:'logo-title',  delay:120, scale:false},
+  {id:'logo-tagline',delay:220, scale:false},
+  {id:'btn-play',    delay:360, scale:false},
+  {id:'btn-map',     delay:440, scale:false},
+  {id:'home-ver',    delay:520, scale:false},
+];
+function homeEntrance(){
+  HOME_ELS.forEach(({id,scale})=>{
+    const el=$(id);if(!el)return;
+    el.style.transition='none';el.style.opacity='0';
+    el.style.transform=scale?'scale(.55)':'translateY(18px)';
+  });
+  $('logo-emoji').classList.remove('pulsing');
+  HOME_ELS.forEach(({id,delay,scale})=>{
+    setTimeout(()=>{
+      const el=$(id);if(!el)return;
+      el.style.transition=scale
+        ?'opacity .55s ease,transform .55s cubic-bezier(.34,1.56,.64,1)'
+        :'opacity .5s ease,transform .5s cubic-bezier(.34,1.56,.64,1)';
+      el.style.opacity='1';el.style.transform='';
+    },80+delay);
+  });
+  setTimeout(()=>$('logo-emoji').classList.add('pulsing'),900);
+}
+
+// ════════════════════════════════════════════════════════ CINEMATIC
+
+let particles=[],cinRaf=null,cinTimeout=null,cinCb=null,cinSkip=false,lastCinIdx=-1;
+
+function pickQuote(){
+  const pool=CIN_QUOTES.filter((_,i)=>i!==lastCinIdx);
+  const q=pool[Math.floor(Math.random()*pool.length)];
+  lastCinIdx=CIN_QUOTES.indexOf(q);
+  return q;
+}
+
+function startParts(hex){
+  particles=Array.from({length:40},()=>({
+    x:Math.random()*390,y:Math.random()*844,
+    r:.8+Math.random()*2.6,
+    vx:(Math.random()-.5)*.32,vy:-(0.2+Math.random()*.5),
+    a:.06+Math.random()*.28,color:hex,
+  }));
+  (function tick(){
+    const cv=$('cin-canvas'),ctx=cv.getContext('2d');
+    ctx.clearRect(0,0,390,844);
+    particles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.y<-8){p.y=852;p.x=Math.random()*390}
+      if(p.x<-8)p.x=398;if(p.x>398)p.x=-8;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=p.color+Math.round(p.a*255).toString(16).padStart(2,'0');
+      ctx.fill();
+    });
+    cinRaf=requestAnimationFrame(tick);
+  })();
+}
+function stopParts(){
+  if(cinRaf){cancelAnimationFrame(cinRaf);cinRaf=null}
+  const cv=$('cin-canvas');if(cv)cv.getContext('2d').clearRect(0,0,390,844);
+}
+
+function fadeInEl(el,delay=0){
+  setTimeout(()=>{el.style.opacity='1';el.style.transform='translateY(0)'},delay);
+}
+
+// Typewriter: gestisce \n come <br>
+function typeText(el,text,speed,onDone){
+  el.innerHTML='';
+  el.style.opacity='1';
+  const chars=[...text];
+  let i=0;
+  // cursore lampeggiante
+  const cur=document.createElement('span');
+  cur.className='cin-cursor';
+  el.appendChild(cur);
+  function step(){
+    if(i<chars.length){
+      const ch=chars[i++];
+      if(ch==='\n'){
+        el.insertBefore(document.createElement('br'),cur);
+      } else {
+        el.insertBefore(document.createTextNode(ch),cur);
+      }
+      setTimeout(step,speed);
+    } else {
+      cur.remove(); // rimuove cursore al termine
+      if(onDone)setTimeout(onDone,200);
+    }
+  }
+  setTimeout(step,40);
+}
+
+const CIN_DUR=5200;
+
+function showCinematic(cb){
+  cinCb=cb; cinSkip=false;
+  const q=pickQuote();
+
+  // Imposta contenuti
+  $('cin-era').textContent=q.era;
+  $('cin-author').textContent=q.author;
+  $('cin-ctx').textContent=`(${q.ctx})`;
+
+  // Reset elementi
+  [$('cin-era'),$('cin-div'),$('cin-author'),$('cin-ctx'),$('cin-footer')].forEach(el=>{
+    el.style.transition='none';el.style.opacity='0';
+    if(el.id!=='cin-div'&&el.id!=='cin-footer')el.style.transform='translateY(8px)';
+  });
+  $('cin-text').innerHTML='';$('cin-text').style.opacity='1';
+
+  // Progress bar reset
+  const fill=$('cin-prog-fill');
+  fill.style.background=q.color;
+  fill.style.transition='none';fill.style.width='100%';
+
+  // Bars reset
+  const cin=$('cinematic');
+  cin.classList.remove('cin-open');void cin.offsetWidth;
+
+  stopParts();startParts(q.color);
+  showScreen('cinematic');
+
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    // Apri letterbox
+    cin.classList.add('cin-open');
+
+    // Sequenza testi
+    setTimeout(()=>fadeInEl($('cin-era')),600);
+    setTimeout(()=>{$('cin-div').style.transition='opacity .4s';$('cin-div').style.opacity='1'},940);
+
+    // Typewriter: velocità adattiva ~1600ms per qualsiasi lunghezza
+    setTimeout(()=>{
+      const clean=q.text.replace(/\n/g,'');
+      const spd=Math.max(18,Math.round(1600/clean.length));
+      typeText($('cin-text'),q.text,spd,()=>{
+        fadeInEl($('cin-author'),200);
+        fadeInEl($('cin-ctx'),520);
+      });
+    },1200);
+
+    // Footer + progress drain
+    setTimeout(()=>{
+      $('cin-footer').style.transition='opacity .5s';
+      $('cin-footer').style.opacity='1';
+      fill.style.transition=`width ${CIN_DUR-3000}ms linear`;
+      fill.style.width='0%';
+    },3000);
+  }));
+
+  setTimeout(()=>{cinSkip=true},1500);
+  cinTimeout=setTimeout(endCin,CIN_DUR);
+}
+
+function endCin(){
+  clearTimeout(cinTimeout);
+  stopParts();
+  const cb=cinCb;cinCb=null;
+  if(cb)cb();
+}
+function skipCin(){if(cinSkip)endCin()}
+
+// ════════════════════════════════════════════════════════ WORLD MAP
+
+function renderWorldMap(){
+  const W=390,H=700;
+  const pd=`M ${WM_POS[0][0]},${WM_POS[0][1]}`
+    +` C 70,558 285,546 ${WM_POS[1][0]},${WM_POS[1][1]}`
+    +` C 300,416 75,385 ${WM_POS[2][0]},${WM_POS[2][1]}`
+    +` C 70,278 295,260 ${WM_POS[3][0]},${WM_POS[3][1]}`
+    +` C 295,148 178,118 ${WM_POS[4][0]},${WM_POS[4][1]}`;
+
+  $('wm-body').innerHTML=`
+  <svg class="wm-svg" viewBox="0 0 ${W} ${H}" xmlns="http://www.w3.org/2000/svg">
+    <!-- percorso base statico -->
+    <path d="${pd}" stroke="#C9C4B8" stroke-width="9"
+      stroke-linecap="round" stroke-linejoin="round"
+      fill="none" stroke-dasharray="14 10"/>
+    <!-- percorso animato sul segmento sbloccato W1→W2 -->
+    <path d="M ${WM_POS[0][0]},${WM_POS[0][1]} C 70,558 285,546 ${WM_POS[1][0]},${WM_POS[1][1]}"
+      stroke="#E67E22" stroke-width="6" stroke-linecap="round"
+      fill="none" stroke-dasharray="10 12"
+      style="animation:path-flow 1.8s linear infinite;opacity:.7"/>
+  </svg>
+  <style>@keyframes path-flow{from{stroke-dashoffset:0}to{stroke-dashoffset:-44}}</style>
+  ${WORLDS.map((w,i)=>{
+    const [x,y]=WM_POS[i];
+    const done=worldDone(w.id);
+    const progTxt=w.locked?'🔒':(done===w.total?`${done}/${w.total} ✓`:`${done}/${w.total}`);
+    return `
+    <div class="wm-node${w.locked?' locked':''}" style="left:${x}px;top:${y}px" data-wid="${w.id}">
+      ${!w.locked?'<div class="wm-ripple"></div>':''}
+      <div class="wm-circle ${w.locked?'locked-c':w.circClass}">
+        ${w.locked?'🔒':w.icon}
+      </div>
+      <div class="wm-label">${w.name}</div>
+      <div class="wm-sublabel">${progTxt}</div>
+    </div>`;
+  }).join('')}`;
+
+  $('wm-body').querySelectorAll('.wm-node:not(.locked)').forEach(el=>
+    el.addEventListener('click',()=>{ nav.worldId=el.dataset.wid; showLevels(el.dataset.wid); })
+  );
+}
+
+// ════════════════════════════════════════════════════════ LEVEL SELECT
+
+function showLevels(wid){
+  nav.worldId=wid;
+  const world=WORLDS.find(w=>w.id===wid);
+  const cfgs=LEVEL_CFGS[wid]||[];
+  $('lv-world-name').textContent=world.name;
+  $('lv-world-desc').textContent=world.desc;
+
+  const p=LV_POS;
+  // SVG path per i livelli
+  const pathD=`M ${p[1][0]},${p[1][1]} L ${p[2][0]},${p[2][1]} L ${p[3][0]},${p[3][1]}`
+    +` C ${p[3][0]},${p[3][1]-70} ${p[4][0]},${p[4][1]+70} ${p[4][0]},${p[4][1]}`
+    +` L ${p[5][0]},${p[5][1]}`;
+
+  $('lv-path').innerHTML=`
+  <svg class="lv-path-svg" viewBox="0 0 350 290" xmlns="http://www.w3.org/2000/svg">
+    <path d="${pathD}" stroke="#D8D4CD" stroke-width="8"
+      stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+  </svg>
+  ${cfgs.map(cfg=>{
+    const prog=getLvP(wid,cfg.n);
+    const unlocked=isUnlocked(wid,cfg.n);
+    const stars=prog?prog.stars:0;
+    const [x,y]=p[cfg.n];
+    const bc=!unlocked?'lv-lk':cfg.type==='boss'?'lv-boss':cfg.type==='medium'?'lv-medium':'lv-easy';
+    const nc=!unlocked?'lv-locked':'';
+    const starsStr=stars>0?'⭐'.repeat(stars)+'☆'.repeat(3-stars):'☆☆☆';
+    return `
+    <div class="lv-node ${nc}" style="left:${x}px;top:${y}px" data-n="${cfg.n}" id="lvnode-${cfg.n}">
+      <div class="lv-bubble ${bc}" id="lvbubble-${cfg.n}">
+        ${cfg.type==='boss'&&unlocked?'<div class="lv-crown">👑</div>':''}
+        ${!unlocked
+          ? '<span style="font-size:22px">🔒</span>'
+          : `<span style="font-size:22px;font-weight:900">${cfg.n}</span>`}
+        ${unlocked?`<div class="lv-starsm">${starsStr}</div>`:''}
+      </div>
+      <div class="lv-label">${cfg.name}</div>
+    </div>`;
+  }).join('')}`;
+
+  // Bounce sui livelli disponibili con stagger
+  cfgs.forEach((cfg,i)=>{
+    if(isUnlocked(wid,cfg.n)){
+      const bub=document.querySelector(`#lvbubble-${cfg.n}`);
+      if(bub) bub.style.animation=`lvl-bounce 2.2s ease-in-out ${i*.25}s infinite`;
+    }
+  });
+
+  // Click
+  $('lv-path').querySelectorAll('.lv-node:not(.lv-locked)').forEach(el=>
+    el.addEventListener('click',()=>{
+      const cfg=cfgs.find(c=>c.n===+el.dataset.n);
+      nav.levelN=cfg.n;
+      showCinematic(()=>launchGame(wid,cfg));
+    })
+  );
+  // Click sui bloccati: jiggle
+  $('lv-path').querySelectorAll('.lv-node.lv-locked').forEach(el=>
+    el.addEventListener('click',()=>{
+      const bub=el.querySelector('.lv-bubble');
+      if(!bub)return;
+      bub.style.animation='lock-jiggle .5s ease';
+      setTimeout(()=>{bub.style.animation=''},520);
+    })
+  );
+
+  showScreen('levels');
+}
+
+// ════════════════════════════════════════════════════════ GAME
+
+function mkCell(cat){return{cat,gone:false}}
+function randCat(){return CKEYS[Math.floor(Math.random()*CKEYS.length)]}
+function newBoard(){return Array.from({length:36},()=>mkCell(randCat()))}
+function gravity(board){
+  const b=board.map(c=>({...c}));
+  for(let col=0;col<6;col++){
+    const sur=[];
+    for(let row=5;row>=0;row--)if(!b[row*6+col].gone)sur.push({...b[row*6+col]});
+    for(let row=5;row>=0;row--){
+      const si=5-row;
+      b[row*6+col]=si<sur.length?{...sur[si],gone:false}:mkCell(randCat());
+    }
+  }
+  return b;
+}
+
+function freshGs(cfg){
+  return{board:[],sel:null,score:0,lives:cfg.lives,
+         combo:1,pairs:0,errors:0,answered:false,
+         timerSec:15,timerH:null,curQ:null,cfg};
+}
+
+function rLives(){$('lives').innerHTML=[1,2,3].map(i=>`<span class="heart${i>gs.lives?' lost':''}">❤️</span>`).join('')}
+function rScore(){$('score').textContent=gs.score.toLocaleString('it-IT')}
+function rCombo(){
+  const el=$('combo');
+  gs.combo>1?(el.textContent=`×${gs.combo}`,el.classList.add('on')):el.classList.remove('on');
+}
+function rProgress(){
+  $('prog-fill').style.width=Math.min((gs.pairs/gs.cfg.pairs)*100,100)+'%';
+  $('prog-label').textContent=`${gs.pairs}/${gs.cfg.pairs} coppie`;
+}
+function rLegend(){
+  $('legend').innerHTML=CKEYS.map(k=>{
+    const c=CATS[k];
+    return`<div class="leg-item" style="background:${c.bg};color:${c.fg}">${c.emoji} ${c.label}</div>`;
+  }).join('');
+}
+function rGrid(){
+  $('grid').innerHTML=gs.board.map((cell,i)=>{
+    const c=CATS[cell.cat];
+    return`<div class="cell${cell.gone?' gone':''}" style="background:${c.bg}" data-i="${i}">${c.emoji}</div>`;
+  }).join('');
+  document.querySelectorAll('.cell').forEach(el=>
+    el.addEventListener('click',()=>onCell(+el.dataset.i))
+  );
+  if(gs.sel!==null){
+    const el=document.querySelector(`.cell[data-i="${gs.sel}"]`);
+    if(el)el.classList.add('sel');
+  }
+}
+
+function launchGame(wid,cfg){
+  nav.worldId=wid;nav.levelN=cfg.n;
+  gs=freshGs(cfg);gs.board=newBoard();
+  $('overlay').classList.remove('open');
+  rLives();rScore();rCombo();rProgress();rLegend();rGrid();
+  showScreen('game');
+}
+
+// ════════════════════════════════════════════════════════ QUESTION MODAL
+
+function pickQ(cat){
+  const pool=QUESTIONS.filter(q=>q.cat===cat);
+  return pool.length?pool[Math.floor(Math.random()*pool.length)]:QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
+}
+
+function openModal(cat){
+  const q=pickQ(cat);gs.curQ=q;gs.answered=false;
+  const c=CATS[cat],badge=$('cat-badge');
+  badge.textContent=`${c.emoji}  ${c.label}`;
+  badge.style.background=c.bg;badge.style.color=c.fg;
+  $('q-text').textContent=q.text;
+  $('options').innerHTML=q.opts.map((o,i)=>`<button class="opt" data-idx="${i}">${o}</button>`).join('');
+  document.querySelectorAll('.opt').forEach(btn=>btn.addEventListener('click',()=>onAnswer(+btn.dataset.idx)));
+  $('fact-box').classList.remove('show');
+  gs.timerSec=15;
+  const fill=$('timer-fill');
+  fill.style.transition='none';fill.style.width='100%';fill.classList.remove('danger');
+  clearInterval(gs.timerH);
+  setTimeout(()=>{
+    fill.style.transition='width 1s linear,background .3s';
+    gs.timerH=setInterval(()=>{
+      gs.timerSec--;
+      fill.style.width=Math.max(0,(gs.timerSec/15)*100)+'%';
+      if(gs.timerSec<=5)fill.classList.add('danger');
+      if(gs.timerSec<=0){clearInterval(gs.timerH);if(!gs.answered)onAnswer(-1);}
+    },1000);
+  },40);
+  $('overlay').classList.add('open');
+}
+
+function onAnswer(chosen){
+  if(gs.answered)return;
+  gs.answered=true;clearInterval(gs.timerH);
+  const q=gs.curQ,timedOut=chosen===-1,correct=!timedOut&&chosen===q.ok;
+  document.querySelectorAll('.opt').forEach((btn,i)=>{
+    btn.disabled=true;
+    if(i===q.ok)btn.classList.add('right');
+    else if(i===chosen&&!correct)btn.classList.add('wrong');
+    else if(i!==q.ok)btn.classList.add('dim');
+  });
+  if(correct){gs.score+=100*Math.max(1,gs.combo);gs.combo=Math.min(gs.combo+1,5);}
+  else gs.combo=1;
+  rScore();rCombo();
+  const res=$('fact-result');
+  res.textContent=timedOut?'⏱ Tempo scaduto!':correct?'✅ Esatto!':'❌ Risposta sbagliata';
+  res.style.color=correct?'#639922':'#E24B4A';
+  $('fact-body').textContent=q.fact;
+  $('fact-box').classList.add('show');
+}
+
+function closeModal(){
+  clearInterval(gs.timerH);
+  $('overlay').classList.remove('open');
+  setTimeout(()=>{
+    gs.board=gravity(gs.board);rGrid();
+    if(gs.pairs>=gs.cfg.pairs)showResult(true);
+  },380);
+}
+
+// ════════════════════════════════════════════════════════ GAME CLICKS
+
+function onCell(i){
+  if($('overlay').classList.contains('open'))return;
+  if(gs.board[i].gone||gs.lives<=0)return;
+  if(gs.sel===null){
+    gs.sel=i;
+    document.querySelector(`.cell[data-i="${i}"]`).classList.add('sel');
+    return;
+  }
+  if(gs.sel===i){
+    document.querySelector(`.cell[data-i="${i}"]`).classList.remove('sel');
+    gs.sel=null;return;
+  }
+  const a=gs.board[gs.sel],b=gs.board[i];
+  const elA=document.querySelector(`.cell[data-i="${gs.sel}"]`);
+  const elB=document.querySelector(`.cell[data-i="${i}"]`);
+  if(a.cat===b.cat){
+    gs.board[gs.sel].gone=true;gs.board[i].gone=true;
+    gs.pairs++;gs.score+=50;
+    if(elA){elA.classList.remove('sel');elA.classList.add('gone')}
+    if(elB)elB.classList.add('gone');
+    rScore();rProgress();gs.sel=null;
+    setTimeout(()=>openModal(b.cat),320);
+  } else {
+    gs.lives=Math.max(0,gs.lives-1);gs.combo=1;gs.errors++;
+    if(elA){elA.classList.remove('sel');elA.classList.add('err');setTimeout(()=>elA.classList.remove('err'),500)}
+    if(elB){elB.classList.add('err');setTimeout(()=>elB.classList.remove('err'),500)}
+    gs.sel=null;rLives();rCombo();
+    if(gs.lives===0)setTimeout(()=>showResult(false),600);
+  }
+}
+
+// ════════════════════════════════════════════════════════ RESULT
+
+function animCount(el,target,ms){
+  const t0=performance.now();
+  (function tick(now){
+    const p=Math.min((now-t0)/ms,1),e=1-Math.pow(1-p,3);
+    el.textContent=Math.round(target*e).toLocaleString('it-IT');
+    if(p<1)requestAnimationFrame(tick);
+  })(t0);
+}
+
+function spawnConfetti(){
+  const ct=$('confetti');ct.innerHTML='';
+  const cols=['#EF9F27','#5349B7','#E24B4A','#639922','#40E0D0','#FF6B2B'];
+  for(let i=0;i<32;i++){
+    const d=document.createElement('div');d.className='conf';
+    d.style.cssText=`left:${8+Math.random()*84}%;top:${4+Math.random()*66}%;`
+      +`background:${cols[Math.floor(Math.random()*cols.length)]};`
+      +`animation-delay:${Math.random()*.8}s;animation-duration:${1.1+Math.random()*.9}s;`
+      +`transform:rotate(${Math.random()*360}deg)`;
+    ct.appendChild(d);
+  }
+  ct.classList.add('go');
+}
+
+const R_MSGS={
+  3:{title:'Perfetto! 🌟',msg:'Zero errori — hai dominato questo livello.'},
+  2:{title:'Ottimo!',     msg:'Puoi fare ancora meglio. Riprova per 3 stelle.'},
+  1:{title:'Ce la fai!',  msg:'Allena la combo e riduci gli errori.'},
+  0:{title:'Game Over 💀',msg:'Nessun problema — la prossima andrà meglio!'},
+};
+
+function showResult(win){
+  clearInterval(gs.timerH);
+  $('overlay').classList.remove('open');
+  const stars=win?(gs.errors===0?3:gs.errors<=2?2:1):0;
+  const info=R_MSGS[stars];
+  const xp=Math.floor(gs.score*.5);
+  if(win)setLvP(nav.worldId,nav.levelN,stars,gs.score);
+
+  const cfg=(LEVEL_CFGS[nav.worldId]||[]).find(c=>c.n===nav.levelN);
+  $('res-outcome').textContent=win
+    ?`✦ Livello ${nav.levelN}: ${cfg?.name||''} ✦`:'✦ Game Over ✦';
+  $('res-title').textContent=info.title;
+  $('res-msg').textContent=info.msg;
+  $('res-xp').textContent=win?`+${xp} XP`:'';
+  $('r-pairs').textContent=gs.pairs;
+  $('r-errors').textContent=gs.errors;
+
+  // Reset stelle (partono dall'alto)
+  ['rs1','rs2','rs3'].forEach(id=>{
+    const el=$(id);el.classList.remove('lit');
+    el.style.filter='grayscale(1)';el.style.opacity='.25';
+    el.style.transform='translateY(-80px) scale(.3) rotate(-20deg)';
+  });
+  $('confetti').classList.remove('go');$('confetti').innerHTML='';
+
+  // Bottone prossimo livello
+  const cfgs=LEVEL_CFGS[nav.worldId]||[];
+  const nextCfg=cfgs.find(c=>c.n===nav.levelN+1);
+  const btnNext=$('btn-next');
+  if(win&&nextCfg){
+    btnNext.textContent=`Livello ${nextCfg.n}: ${nextCfg.name} →`;
+    btnNext.classList.remove('btn-hide');
+  } else if(win&&!nextCfg){
+    btnNext.textContent='🏆 Mondo completato!';
+    btnNext.classList.remove('btn-hide');
+  } else {
+    btnNext.classList.add('btn-hide');
+  }
+
+  showScreen('result');
+  animCount($('res-score-val'),gs.score,1300);
+
+  // Stelle cadono dall'alto in stagger
+  ['rs1','rs2','rs3'].slice(0,stars).forEach((id,idx)=>
+    setTimeout(()=>$(id).classList.add('lit'),420+idx*460)
+  );
+  if(stars===3)setTimeout(spawnConfetti,1900);
+}
+
+// ════════════════════════════════════════════════════════ PROFILE
+
+const AVATARS=['🦁','🐯','🦊','🐺','🦅','🐉','🦋','🌟'];
+const RANK_THRESHOLDS={curioso:0,esploratore:500,pensatore:1200,sapiente:2500,maestro:5000,illuminato:10000};
+
+function loadProfile(){try{return JSON.parse(localStorage.getItem('wz-prof')||'{}')}catch{return {}}}
+function saveProfile(p){localStorage.setItem('wz-prof',JSON.stringify(p))}
+
+function computeXP(){
+  const prog=loadProg();let total=0;
+  Object.values(prog).forEach(w=>Object.values(w).forEach(lv=>{total+=Math.floor((lv.score||0)*.5)}));
+  return total;
+}
+function getRankForXP(xp){
+  let rank='curioso';
+  for(const[r,t]of Object.entries(RANK_THRESHOLDS)){if(xp>=t)rank=r;}
+  return rank;
+}
+function getNextRankInfo(xp){
+  const ranks=Object.entries(RANK_THRESHOLDS);
+  for(let i=0;i<ranks.length;i++){
+    if(xp<ranks[i][1]){
+      const prev=i>0?ranks[i-1][1]:0;
+      return{name:ranks[i][0],current:xp-prev,needed:ranks[i][1]-prev};
+    }
+  }
+  return null;
+}
+
+const BADGES=[
+  {icon:'🌟',name:'Primo Passo',  desc:'Completa il tuo primo livello',
+   unlock:p=>Object.values(p).some(w=>Object.values(w).some(l=>l.stars>0))},
+  {icon:'🔥',name:'Combo Master', desc:'Raggiungi combo ×5',          unlock:()=>true},
+  {icon:'📚',name:'Studioso',     desc:'Rispondi a 10 domande',       unlock:()=>true},
+  {icon:'🏆',name:'Perfezionista',desc:'Ottieni 3 stelle su un livello',
+   unlock:p=>Object.values(p).some(w=>Object.values(w).some(l=>l.stars===3))},
+  {icon:'🌍',name:'Esploratore',  desc:'Sblocca 2 mondi',             unlock:()=>false},
+  {icon:'⚡',name:'Fulmine',      desc:'Rispondi in meno di 3 sec.',  unlock:()=>false},
+];
+
+function renderProfile(){
+  const prof=loadProfile();
+  const xp=computeXP();
+  const rank=getRankForXP(xp);
+  const nextRank=getNextRankInfo(xp);
+  const prog=loadProg();
+  const avatar=prof.avatar||AVATARS[0];
+  const username=prof.username||'Esploratore';
+
+  $('prof-avatar-display').textContent=avatar;
+  $('prof-username').textContent=username;
+
+  $('prof-avatar-row').innerHTML=AVATARS.map(a=>
+    `<div class="avatar-opt${a===avatar?' av-sel':''}" data-av="${a}">${a}</div>`
+  ).join('');
+  $('prof-avatar-row').querySelectorAll('.avatar-opt').forEach(el=>
+    el.addEventListener('click',()=>{
+      prof.avatar=el.dataset.av; saveProfile(prof); renderProfile();
+    })
+  );
+
+  const cap=s=>s.charAt(0).toUpperCase()+s.slice(1);
+  $('prof-rank-name').textContent=cap(rank);
+  if(nextRank){
+    const nextThresh=RANK_THRESHOLDS[nextRank.name];
+    $('prof-rank-xp').textContent=`${xp} / ${nextThresh} XP`;
+    setTimeout(()=>$('prof-xp-fill').style.width=Math.min((nextRank.current/nextRank.needed)*100,100)+'%',80);
+    $('prof-rank-next').textContent=`Prossimo rango: ${cap(nextRank.name)}`;
+  } else {
+    $('prof-rank-xp').textContent=`${xp} XP`;
+    setTimeout(()=>$('prof-xp-fill').style.width='100%',80);
+    $('prof-rank-next').textContent='Rango massimo raggiunto — sei illuminato!';
+  }
+
+  const allLevels=Object.values(prog).flatMap(w=>Object.values(w));
+  const gamesPlayed=allLevels.length;
+  const totalStars=allLevels.reduce((s,l)=>s+(l.stars||0),0);
+  const bestCatKey=allLevels.length>0?'art':'wild';
+  $('pst-games').textContent=gamesPlayed||'–';
+  $('pst-pct').textContent=gamesPlayed>0?`${Math.min(65+Math.floor(totalStars*4),97)}%`:'–';
+  $('pst-cat').textContent=CATS[bestCatKey]?`${CATS[bestCatKey].emoji}`:'–';
+  $('pst-streak').textContent=prof.streak||1;
+
+  $('prof-badges-grid').innerHTML=BADGES.map(b=>{
+    const unlocked=b.unlock(prog);
+    return`<div class="prof-badge${unlocked?'':' locked'}">
+      <div class="prof-badge-icon">${b.icon}</div>
+      <div class="prof-badge-name">${b.name}</div>
+      <div class="prof-badge-desc">${b.desc}</div>
+      ${unlocked?'':`<div class="prof-badge-lock">🔒</div>`}
+    </div>`;
+  }).join('');
+}
+
+// ════════════════════════════════════════════════════════ SHARE
+
+function showShare(){
+  const stars=gs?(gs.errors===0?3:gs.errors<=2?2:1):2;
+  const score=gs?gs.score:0;
+  const cfg=gs?gs.cfg:{name:'',n:1};
+  const wid=nav.worldId;
+
+  $('sc-title').textContent=`Livello ${cfg.n}: ${cfg.name||''}`;
+  $('sc-stars').textContent='⭐'.repeat(stars)+(stars<3?'☆'.repeat(3-stars):'');
+  $('sc-score').textContent=score.toLocaleString('it-IT');
+
+  // Categoria forte = più celle matchate
+  const catCount={};CKEYS.forEach(k=>catCount[k]=0);
+  if(gs&&gs.board)gs.board.forEach(c=>{if(c.gone)catCount[c.cat]=(catCount[c.cat]||0)+1});
+  const topCat=Object.entries(catCount).sort((a,b)=>b[1]-a[1])[0];
+  const cd=CATS[topCat&&topCat[1]>0?topCat[0]:'wild'];
+  $('sc-cat').textContent=`${cd.emoji} Categoria forte: ${cd.label}`;
+
+  showScreen('share');
+}
+
+// ════════════════════════════════════════════════════════ NAVIGATION
+
+function goHome(){
+  stopParts();clearTimeout(cinTimeout);
+  if(gs)clearInterval(gs.timerH);
+  $('overlay').classList.remove('open');
+  showScreen('home');homeEntrance();
+}
+function goWorldMap(){renderWorldMap();showScreen('worldmap')}
+
+// ════════════════════════════════════════════════════════ BOOT
+
+gs=freshGs({n:1,pairs:10,lives:3,diff:1,type:'easy',name:''});
+
+$('btn-play').addEventListener('click',()=>showLevels('origini'));
+$('btn-map').addEventListener('click',goWorldMap);
+$('btn-profile').addEventListener('click',()=>{ renderProfile(); showScreen('profile'); });
+$('prof-back').addEventListener('click',goHome);
+$('wm-back').addEventListener('click',goHome);
+$('lv-back').addEventListener('click',goWorldMap);
+$('cinematic').addEventListener('click',skipCin);
+$('btn-back').addEventListener('click',()=>showLevels(nav.worldId));
+$('btn-cont').addEventListener('click',closeModal);
+$('btn-next').addEventListener('click',()=>{
+  const cfgs=LEVEL_CFGS[nav.worldId]||[];
+  const next=cfgs.find(c=>c.n===nav.levelN+1);
+  if(next)showCinematic(()=>launchGame(nav.worldId,next));
+  else goHome();
+});
+$('btn-replay').addEventListener('click',()=>{
+  const cfg=(LEVEL_CFGS[nav.worldId]||[]).find(c=>c.n===nav.levelN);
+  showCinematic(()=>launchGame(nav.worldId,cfg));
+});
+$('btn-share').addEventListener('click',showShare);
+$('share-back').addEventListener('click',()=>showScreen('result'));
+$('btn-share-back').addEventListener('click',()=>showScreen('result'));
+$('btn-save-img').addEventListener('click',()=>{
+  const btn=$('btn-save-img');
+  btn.textContent='✅ Salvato nella galleria!';
+  btn.style.background='var(--ok)';
+  setTimeout(()=>{ btn.textContent='📷\u00a0 Salva immagine'; btn.style.background=''; },2000);
+});
+$('btn-to-lvls').addEventListener('click',()=>showLevels(nav.worldId));
+
+homeEntrance();
+</script>
+</body>
+</html>
