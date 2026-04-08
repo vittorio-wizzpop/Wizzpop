@@ -4,6 +4,14 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WizzPop — Preview</title>
+<!-- Google Analytics GA4 -->
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-GX72TYSCFT"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-GX72TYSCFT');
+</script>
 <style>
 /* ═══════════════════════════════════════ RESET & VARS */
 :root{
@@ -1175,7 +1183,7 @@ function homeEntrance(){
 
 // ════════════════════════════════════════════════════════ CINEMATIC
 
-let particles=[],cinRaf=null,cinTimeout=null,cinCb=null,cinSkip=false,lastCinIdx=-1;
+let particles=[],cinRaf=null,cinTimeout=null,cinCb=null,cinSkip=false,lastCinIdx=-1,cinCurrentQuote=null;
 
 function pickQuote(){
   const pool=CIN_QUOTES.filter((_,i)=>i!==lastCinIdx);
@@ -1245,7 +1253,7 @@ const CIN_DUR=5200;
 
 function showCinematic(cb){
   cinCb=cb; cinSkip=false;
-  const q=pickQuote();
+  const q=pickQuote(); cinCurrentQuote=q;
 
   // Imposta contenuti
   $('cin-era').textContent=q.era;
@@ -1270,6 +1278,7 @@ function showCinematic(cb){
 
   stopParts();startParts(q.color);
   showScreen('cinematic');
+  gtag('event','cinematic_viewed',{quote_author:q.author,quote_era:q.era});
 
   requestAnimationFrame(()=>requestAnimationFrame(()=>{
     // Apri letterbox
@@ -1308,7 +1317,7 @@ function endCin(){
   const cb=cinCb;cinCb=null;
   if(cb)cb();
 }
-function skipCin(){if(cinSkip)endCin()}
+function skipCin(){if(cinSkip){gtag('event','level_skipped',{quote_author:cinCurrentQuote?.author||'',quote_era:cinCurrentQuote?.era||''});endCin();}}
 
 // ════════════════════════════════════════════════════════ WORLD MAP
 
@@ -1496,6 +1505,7 @@ function launchGame(wid,cfg){
   $('overlay').classList.remove('open');
   rLives();rScore();rCombo();rProgress();rMoves();rLegend();rGrid();
   showScreen('game');
+  gtag('event','level_start',{world_id:wid,level_n:cfg.n,level_name:cfg.name||''});
 }
 
 // ════════════════════════════════════════════════════════ QUESTION MODAL
@@ -1570,6 +1580,8 @@ function onAnswer(chosen){
 
   rScore(); rCombo(); rProgress();
 
+  gtag('event','question_answered',{correct:correct,timed_out:timedOut,category:q.cat,level_n:nav.levelN});
+
   const res=$('fact-result');
   res.textContent=timedOut?'⏱ Tempo scaduto! Match annullato.':correct?'✅ Esatto!':'❌ Sbagliato — match annullato, -1 vita';
   res.style.color=correct?'#639922':'#E24B4A';
@@ -1641,6 +1653,7 @@ function onCell(i){
     if(elA){elA.classList.remove('sel');elA.classList.add('gone')}
     if(elB)elB.classList.add('gone');
     gs.sel=null;
+    gtag('event','match_made',{category:b.cat,combo:gs.combo,level_n:nav.levelN});
     setTimeout(()=>openModal(b.cat),320);
   } else {
     // Mismatch — vita e animazione errore
@@ -1731,6 +1744,11 @@ function showResult(win){
     btnNext.classList.add('btn-hide');
   }
 
+  if(win){
+    gtag('event','level_complete',{stars:stars,score:gs.score,errors:gs.errors,pairs:gs.pairs,level_n:nav.levelN,world_id:nav.worldId});
+  } else {
+    gtag('event','game_over',{score:gs.score,errors:gs.errors,pairs:gs.pairs,level_n:nav.levelN,world_id:nav.worldId});
+  }
   showScreen('result');
   animCount($('res-score-val'),gs.score,1300);
 
