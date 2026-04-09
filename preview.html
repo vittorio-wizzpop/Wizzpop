@@ -1259,30 +1259,34 @@ const WORLDS=[
 const WM_POS=[[100,618],[270,482],[108,348],[268,214],[184,88]];
 
 // Configurazione livelli
+// REGOLA MOSSE: ogni "mossa" = 1 tentativo di coppia (secondo tap).
+// Selezionare/deselezionare la prima cella NON costa una mossa.
+// Boss e respiro calibrati: pairs ≤ maxMoves per permettere qualche errore.
 const LEVEL_CFGS={
   origini:[
-    {n:1, pairs:5,  lives:3,diff:1,type:'easy',  name:'Primo Passo',       maxMoves:null},
-    {n:2, pairs:8,  lives:3,diff:1,type:'easy',  name:'Curioso',           maxMoves:null},
-    {n:3, pairs:10, lives:3,diff:2,type:'medium', name:'Pensatore',         maxMoves:25},
-    {n:4, pairs:8,  lives:3,diff:1,type:'easy',  name:'Respiro',           maxMoves:20},
-    {n:5, pairs:12, lives:2,diff:2,type:'boss',  name:'Il Boss',           maxMoves:15},
-    {n:6, pairs:10, lives:3,diff:1,type:'easy',  name:"L'Esplorazione",    maxMoves:null},
-    {n:7, pairs:12, lives:3,diff:2,type:'medium', name:'Labirinto',         maxMoves:28},
-    {n:8, pairs:14, lives:3,diff:2,type:'medium', name:'Tra le Rovine',     maxMoves:32},
-    {n:9, pairs:8,  lives:3,diff:1,type:'easy',  name:'Respiro II',        maxMoves:20},
-    {n:10,pairs:15, lives:2,diff:2,type:'boss',  name:'Boss delle Origini',maxMoves:18},
-    {n:11,pairs:10, lives:3,diff:2,type:'medium', name:'Il Risveglio',      maxMoves:null},
-    {n:12,pairs:12, lives:3,diff:2,type:'medium', name:'Il Cammino',        maxMoves:30},
-    {n:13,pairs:14, lives:3,diff:2,type:'medium', name:'Tra le Stelle',     maxMoves:35},
-    {n:14,pairs:8,  lives:3,diff:1,type:'easy',  name:'Ultimo Respiro',    maxMoves:22},
-    {n:15,pairs:18, lives:2,diff:2,type:'boss',  name:'Boss Finale',       maxMoves:20},
+    // n  pairs  lives  diff  type      name                   maxMoves
+    {n:1,  pairs:5,  lives:3,diff:1,type:'easy',   name:'Primo Passo',        maxMoves:null}, // ∞
+    {n:2,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Curioso',            maxMoves:null}, // ∞
+    {n:3,  pairs:10, lives:3,diff:2,type:'medium',  name:'Pensatore',          maxMoves:25},   // 10 coppie + 15 errori
+    {n:4,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Respiro',            maxMoves:20},   // respiro pre-boss
+    {n:5,  pairs:10, lives:2,diff:2,type:'boss',   name:'Il Boss',            maxMoves:15},   // 10 coppie + 5 err
+    {n:6,  pairs:10, lives:3,diff:1,type:'easy',   name:"L'Esplorazione",     maxMoves:22},   // 10 + 12 err
+    {n:7,  pairs:10, lives:3,diff:2,type:'medium',  name:'Labirinto',          maxMoves:20},   // 10 + 10 err
+    {n:8,  pairs:10, lives:3,diff:2,type:'medium',  name:'Tra le Rovine',      maxMoves:22},   // 10 + 12 err
+    {n:9,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Respiro II',         maxMoves:20},   // respiro pre-boss
+    {n:10, pairs:10, lives:2,diff:2,type:'boss',   name:'Boss delle Origini', maxMoves:15},   // 10 coppie + 5 err
+    {n:11, pairs:10, lives:3,diff:2,type:'medium',  name:'Il Risveglio',       maxMoves:20},   // 10 + 10 err
+    {n:12, pairs:10, lives:3,diff:2,type:'medium',  name:'Il Cammino',         maxMoves:20},   // 10 + 10 err
+    {n:13, pairs:12, lives:3,diff:2,type:'medium',  name:'Tra le Stelle',      maxMoves:20},   // 12 + 8 err
+    {n:14, pairs:8,  lives:3,diff:1,type:'easy',   name:'Ultimo Respiro',     maxMoves:20},   // respiro pre-boss
+    {n:15, pairs:10, lives:2,diff:2,type:'boss',   name:'Boss Finale',        maxMoves:12},   // 10 coppie + 2 err — durissimo
   ],
   civilta:[
-    {n:1, pairs:6,  lives:3,diff:1,type:'easy',  name:'Atene',             maxMoves:null},
-    {n:2, pairs:8,  lives:3,diff:1,type:'easy',  name:'La Repubblica',     maxMoves:null},
-    {n:3, pairs:10, lives:3,diff:2,type:'medium', name:"L'Impero",          maxMoves:25},
-    {n:4, pairs:8,  lives:3,diff:1,type:'easy',  name:'Pax Romana',        maxMoves:20},
-    {n:5, pairs:12, lives:2,diff:2,type:'boss',  name:'Cesare',            maxMoves:15},
+    {n:1,  pairs:6,  lives:3,diff:1,type:'easy',   name:'Atene',              maxMoves:20},
+    {n:2,  pairs:8,  lives:3,diff:1,type:'easy',   name:'La Repubblica',      maxMoves:20},
+    {n:3,  pairs:8,  lives:3,diff:2,type:'medium',  name:"L'Impero",           maxMoves:20},
+    {n:4,  pairs:6,  lives:3,diff:1,type:'easy',   name:'Pax Romana',         maxMoves:20},
+    {n:5,  pairs:10, lives:2,diff:2,type:'boss',   name:'Cesare',             maxMoves:20},
   ],
 };
 
@@ -1933,35 +1937,32 @@ function onCell(i){
   if($('overlay').classList.contains('open'))return;
   if(gs.board[i].gone||gs.lives<=0)return;
 
-  // Ogni tap = 1 mossa
+  // Prima selezione: nessuna mossa consumata
+  if(gs.sel===null){
+    gs.sel=i;
+    document.querySelector(`.cell[data-i="${i}"]`).classList.add('sel');
+    return;
+  }
+  // Deseleziona stessa cella: nessuna mossa consumata
+  if(gs.sel===i){
+    document.querySelector(`.cell[data-i="${i}"]`).classList.remove('sel');
+    gs.sel=null;
+    return;
+  }
+
+  // SECONDO TAP su cella diversa = 1 TENTATIVO DI COPPIA = 1 MOSSA
   if(gs.maxMoves!==null){
     gs.moves++;
     rMoves();
   }
 
-  if(gs.sel===null){
-    gs.sel=i;
-    document.querySelector(`.cell[data-i="${i}"]`).classList.add('sel');
-    // Mosse finite dopo la prima selezione → fine livello dopo breve attesa
-    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)
-      setTimeout(()=>showResult(true),400);
-    return;
-  }
-  if(gs.sel===i){
-    document.querySelector(`.cell[data-i="${i}"]`).classList.remove('sel');
-    gs.sel=null;
-    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)
-      setTimeout(()=>showResult(true),400);
-    return;
-  }
-
   const a=gs.board[gs.sel],b=gs.board[i];
   const elA=document.querySelector(`.cell[data-i="${gs.sel}"]`);
   const elB=document.querySelector(`.cell[data-i="${i}"]`);
-  const movesUp=gs.maxMoves!==null&&gs.moves>=gs.maxMoves;
 
   if(a.cat===b.cat){
     // Match valido — celle pendenti, attendiamo la risposta alla domanda
+    // (closeModal controllerà la win condition dopo la risposta)
     gs.pendingA=gs.sel; gs.pendingB=i;
     gs.pendingCat=b.cat; gs.pendingMatchTime=Date.now();
     gs.board[gs.sel].gone=true; gs.board[i].gone=true;
@@ -1971,13 +1972,15 @@ function onCell(i){
     gtag('event','match_made',{category:b.cat,combo:gs.combo,level_n:nav.levelN});
     setTimeout(()=>openModal(b.cat),320);
   } else {
-    // Mismatch — vita e animazione errore
+    // Mismatch — vita persa, raffica azzera, nessuna coppia contata
     gs.lives=Math.max(0,gs.lives-1); gs.combo=1; gs.errors++;
+    gs.rafficaCount=0; gs.rafficaCat=null;
     if(elA){elA.classList.remove('sel');elA.classList.add('err');setTimeout(()=>elA.classList.remove('err'),500)}
     if(elB){elB.classList.add('err');setTimeout(()=>elB.classList.remove('err'),500)}
-    gs.sel=null; rLives(); rCombo();
+    gs.sel=null; rLives(); rCombo(); rRaffBar();
     if(gs.lives===0)return setTimeout(()=>showResult(false),600);
-    if(movesUp)setTimeout(()=>showResult(true),650);
+    // Mosse esaurite dopo mismatch → fine livello (pairs < required → "mosse esaurite")
+    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)setTimeout(()=>showResult(true),650);
   }
 }
 
