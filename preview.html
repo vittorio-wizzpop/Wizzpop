@@ -1665,6 +1665,7 @@ function freshGs(cfg){
          timerSec:15,timerH:null,curQ:null,cfg,
          moves:0,maxMoves:cfg.maxMoves??null,
          pendingA:null,pendingB:null,lastMatchCorrect:false,
+         gameOverReason:null, // 'lives' | 'moves' | null (null = win)
          // Raffica system
          rafficaCat:null,rafficaCount:0,rafficaLastMatchTime:0,
          rafficaBonus:false,pendingRaffica:null,
@@ -1917,17 +1918,17 @@ function closeModal(){
       const rt=gs.pendingRaffica; const cat=gs.rafficaCat;
       gs.pendingRaffica=null;
       triggerRaffica(rt,cat,()=>{
-        if(gs.lives<=0)showResult(false);
+        if(gs.lives<=0){gs.gameOverReason='lives';showResult(false);}
         else if(gs.pairs>=gs.cfg.pairs)showResult(true);
-        else if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)showResult(true);
+        else if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves){gs.gameOverReason='moves';showResult(false);}
       });
       return;
     }
 
-    // Check fine livello
-    if(gs.lives<=0)return showResult(false);
+    // Check fine livello — WIN solo se coppie completate
+    if(gs.lives<=0){gs.gameOverReason='lives';return showResult(false);}
     if(gs.pairs>=gs.cfg.pairs)return showResult(true);
-    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)return showResult(true);
+    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves){gs.gameOverReason='moves';return showResult(false);}
   },380);
 }
 
@@ -1978,9 +1979,9 @@ function onCell(i){
     if(elA){elA.classList.remove('sel');elA.classList.add('err');setTimeout(()=>elA.classList.remove('err'),500)}
     if(elB){elB.classList.add('err');setTimeout(()=>elB.classList.remove('err'),500)}
     gs.sel=null; rLives(); rCombo(); rRaffBar();
-    if(gs.lives===0)return setTimeout(()=>showResult(false),600);
-    // Mosse esaurite dopo mismatch → fine livello (pairs < required → "mosse esaurite")
-    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)setTimeout(()=>showResult(true),650);
+    if(gs.lives===0)return setTimeout(()=>{gs.gameOverReason='lives';showResult(false);},600);
+    // Mosse esaurite dopo mismatch → game over (non win — le coppie non sono completate)
+    if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)setTimeout(()=>{gs.gameOverReason='moves';showResult(false);},650);
   }
 }
 
@@ -2009,77 +2010,106 @@ function spawnConfetti(){
   ct.classList.add('go');
 }
 
-const R_MSGS={
-  3:{title:'Perfetto! 🌟',msg:'Zero errori — hai dominato questo livello.'},
-  2:{title:'Ottimo! 👍',  msg:'Puoi fare ancora meglio. Riprova per 3 stelle.'},
-  1:{title:'Ce la fai!', msg:'Allena la combo e riduci gli errori.'},
-  0:{title:'Game Over 💀',msg:'Nessun problema — la prossima andrà meglio!'},
-};
-
 function showResult(win){
   clearInterval(gs.timerH);
   $('overlay').classList.remove('open');
 
-  // Stelle: 0 errori = 3★, 1-2 errori = 2★, 3+ = 1★ (0 se game over)
-  const stars=win?(gs.errors===0?3:gs.errors<=2?2:1):0;
-  const movesExhausted=gs.maxMoves!==null&&gs.moves>=gs.maxMoves&&gs.pairs<gs.cfg.pairs;
-  const info=R_MSGS[stars];
-  const xp=Math.floor(gs.score*.5);
-  if(win)setLvP(nav.worldId,nav.levelN,stars,gs.score);
+  // ── Scenario 1: WIN — tutte le coppie completate ────────────────
+  // ── Scenario 2: GAME OVER — mosse o vite esaurite ───────────────
+  // win=true è valido SOLO se le coppie richieste sono state raggiunte.
+  // Difesa extra: se pairs < required, forziamo game over.
+  const pairsComplete = gs.pairs >= gs.cfg.pairs;
+  const isWin = win && pairsComplete;
+  if(win && !pairsComplete && !gs.gameOverReason) gs.gameOverReason = 'moves';
 
-  const cfg=(LEVEL_CFGS[nav.worldId]||[]).find(c=>c.n===nav.levelN);
-  $('res-outcome').textContent=win
-    ?(movesExhausted?`✦ Mosse esaurite — ${gs.pairs}/${gs.cfg.pairs} coppie ✦`
-                    :`✦ Livello ${nav.levelN}: ${cfg?.name||''} ✦`)
-    :'✦ Game Over ✦';
-  $('res-title').textContent=movesExhausted&&stars<3?`Mosse finite! ${info.title}`:info.title;
-  $('res-msg').textContent=movesExhausted
-    ?`Hai completato ${gs.pairs} coppie su ${gs.cfg.pairs} con ${gs.errors} err${gs.errors===1?'ore':'ori'}.`
-    :info.msg;
-  $('res-xp').textContent=win?`+${xp} XP`:'';
-  $('r-pairs').textContent=`${gs.pairs}/${gs.cfg.pairs}`;
-  $('r-errors').textContent=gs.errors;
+  const stars = isWin ? (gs.errors===0 ? 3 : gs.errors<=2 ? 2 : 1) : 0;
+  const xp = Math.floor(gs.score * 0.5);
 
-  // Reset stelle (partono dall'alto)
+  // Salva progresso SOLO in caso di vittoria reale
+  if(isWin) setLvP(nav.worldId, nav.levelN, stars, gs.score);
+
+  // Testi in base allo scenario
+  const cfg = (LEVEL_CFGS[nav.worldId]||[]).find(c=>c.n===nav.levelN);
+  let outcomeText, titleText, msgText;
+  if(isWin){
+    outcomeText = `✦ Livello ${nav.levelN}: ${cfg?.name||''} ✦`;
+    titleText   = stars===3 ? 'Perfetto! 🌟'
+                : stars===2 ? 'Ottimo! 👍'
+                :             'Ce la fai!';
+    msgText     = stars===3 ? 'Zero errori — hai dominato questo livello.'
+                : stars===2 ? 'Puoi fare ancora meglio. Riprova per 3 stelle.'
+                :             'Allena la combo e riduci gli errori.';
+  } else if(gs.gameOverReason==='moves'){
+    outcomeText = '✦ Mosse Esaurite ✦';
+    titleText   = 'Mosse esaurite!';
+    msgText     = `Hai completato ${gs.pairs} su ${gs.cfg.pairs} coppie. Riprova!`;
+  } else {
+    outcomeText = '✦ Game Over ✦';
+    titleText   = 'Game Over 💀';
+    msgText     = 'Nessun problema — la prossima andrà meglio!';
+  }
+
+  $('res-outcome').textContent = outcomeText;
+  $('res-title').textContent   = titleText;
+  $('res-msg').textContent     = msgText;
+  $('res-xp').textContent      = isWin ? `+${xp} XP` : '';
+  $('r-pairs').textContent     = `${gs.pairs}/${gs.cfg.pairs}`;
+  $('r-errors').textContent    = gs.errors;
+
+  // Reset stelle
   ['rs1','rs2','rs3'].forEach(id=>{
-    const el=$(id);el.classList.remove('lit');
-    el.style.filter='grayscale(1)';el.style.opacity='.25';
+    const el=$(id); el.classList.remove('lit');
+    el.style.filter='grayscale(1)'; el.style.opacity='.25';
     el.style.transform='translateY(-80px) scale(.3) rotate(-20deg)';
   });
-  $('confetti').classList.remove('go');$('confetti').innerHTML='';
+  $('confetti').classList.remove('go'); $('confetti').innerHTML='';
 
-  // Bottone prossimo livello
-  const cfgs=LEVEL_CFGS[nav.worldId]||[];
-  const nextCfg=cfgs.find(c=>c.n===nav.levelN+1);
-  const wIdx=WORLDS.findIndex(w=>w.id===nav.worldId);
-  const nextWorldUnlocked=win&&!nextCfg&&isWorldUnlocked(wIdx+1);
-  const btnNext=$('btn-next');
-  if(win&&nextCfg){
-    btnNext.textContent=`Livello ${nextCfg.n}: ${nextCfg.name} →`;
-    btnNext.classList.remove('btn-hide');
-  } else if(nextWorldUnlocked){
-    btnNext.textContent=`🏛️ Mondo ${wIdx+2} sbloccato! →`;
-    btnNext.classList.remove('btn-hide');
-  } else if(win&&!nextCfg){
-    btnNext.textContent='🏆 Mondo completato!';
-    btnNext.classList.remove('btn-hide');
+  // ── Bottoni ────────────────────────────────────────────────────
+  const cfgs = LEVEL_CFGS[nav.worldId]||[];
+  const nextCfg = cfgs.find(c=>c.n===nav.levelN+1);
+  const wIdx = WORLDS.findIndex(w=>w.id===nav.worldId);
+  const nextWorldUnlocked = isWin && !nextCfg && isWorldUnlocked(wIdx+1);
+  const btnNext   = $('btn-next');
+  const btnReplay = $('btn-replay');
+  const btnShare  = $('btn-share');
+
+  if(isWin){
+    // WIN: prossimo livello (primary), rigioca (secondary), condividi
+    btnReplay.className = 'btn-f btn-sec';
+    btnReplay.innerHTML = '↺&nbsp; Rigioca';
+    btnShare.classList.remove('btn-hide');
+    if(nextCfg){
+      btnNext.textContent = `Livello ${nextCfg.n}: ${nextCfg.name} →`;
+      btnNext.classList.remove('btn-hide');
+    } else if(nextWorldUnlocked){
+      btnNext.textContent = `🏛️ Mondo ${wIdx+2} sbloccato! →`;
+      btnNext.classList.remove('btn-hide');
+    } else {
+      btnNext.textContent = '🏆 Mondo completato!';
+      btnNext.classList.remove('btn-hide');
+    }
   } else {
+    // GAME OVER: solo Riprova (primary) e ← Livelli — niente prossimo/condividi
     btnNext.classList.add('btn-hide');
+    btnReplay.className = 'btn-f btn-pri';
+    btnReplay.innerHTML = '↺&nbsp; Riprova!';
+    btnShare.classList.add('btn-hide');
   }
 
-  if(win){
-    gtag('event','level_complete',{stars:stars,score:gs.score,errors:gs.errors,pairs:gs.pairs,level_n:nav.levelN,world_id:nav.worldId});
+  if(isWin){
+    gtag('event','level_complete',{stars,score:gs.score,errors:gs.errors,pairs:gs.pairs,level_n:nav.levelN,world_id:nav.worldId});
   } else {
-    gtag('event','game_over',{score:gs.score,errors:gs.errors,pairs:gs.pairs,level_n:nav.levelN,world_id:nav.worldId});
+    gtag('event','game_over',{reason:gs.gameOverReason||'lives',score:gs.score,errors:gs.errors,pairs:gs.pairs,level_n:nav.levelN,world_id:nav.worldId});
   }
-  showScreen('result');
-  animCount($('res-score-val'),gs.score,1300);
 
-  // Stelle cadono dall'alto in stagger
-  ['rs1','rs2','rs3'].slice(0,stars).forEach((id,idx)=>
-    setTimeout(()=>$(id).classList.add('lit'),420+idx*460)
+  showScreen('result');
+  animCount($('res-score-val'), gs.score, 1300);
+
+  // Stelle cadono dall'alto in stagger (solo su win reale)
+  ['rs1','rs2','rs3'].slice(0, stars).forEach((id,idx)=>
+    setTimeout(()=>$(id).classList.add('lit'), 420+idx*460)
   );
-  if(stars===3)setTimeout(spawnConfetti,1900);
+  if(stars===3) setTimeout(spawnConfetti, 1900);
 }
 
 // ════════════════════════════════════════════════════════ PROFILE
