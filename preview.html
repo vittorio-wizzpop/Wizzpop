@@ -478,6 +478,46 @@ body{
 .btn-ghost{background:transparent;color:var(--t2);border:1.5px solid #E5E4DF}
 .btn-hide{display:none}
 
+/* ═══════════════════════════════════════ RAFFICA */
+#raffica-overlay{
+  position:absolute;inset:0;
+  display:none;flex-direction:column;align-items:center;justify-content:center;
+  z-index:500;pointer-events:none;
+  gap:10px;
+}
+.raffica-bg{
+  position:absolute;inset:0;
+  opacity:.22;
+}
+.raffica-text{
+  font-size:42px;font-weight:900;letter-spacing:-.5px;
+  color:var(--t1);
+  text-shadow:0 2px 24px rgba(255,255,255,.5);
+  position:relative;z-index:2;
+  transform:scale(0);
+}
+.raffica-subtext{
+  font-size:15px;font-weight:700;
+  color:rgba(0,0,0,.65);
+  position:relative;z-index:2;
+  opacity:0;transition:opacity .3s .3s;
+}
+.raffica-overlay-visible .raffica-subtext{opacity:1}
+@keyframes raffica-pop{
+  0%  {transform:scale(0) rotate(-8deg);}
+  55% {transform:scale(1.25) rotate(3deg);}
+  75% {transform:scale(.92) rotate(-2deg);}
+  100%{transform:scale(1) rotate(0);}
+}
+.raffica-bar{
+  padding:5px 14px;font-size:12px;font-weight:800;
+  text-align:center;flex-shrink:0;
+  border-bottom:1px solid rgba(0,0,0,.06);
+  animation:rbar-pulse 1.1s ease-in-out infinite;
+  letter-spacing:.3px;
+}
+@keyframes rbar-pulse{0%,100%{opacity:1}50%{opacity:.6}}
+
 /* ═══════════════════════════════════════ PROFILE */
 #profile{background:var(--bg);display:flex;flex-direction:column}
 .prof-body{flex:1;overflow-y:auto;padding:16px 20px 40px;display:flex;flex-direction:column;gap:18px}
@@ -656,6 +696,10 @@ body{
       <div class="wlc-rule-icon">⚡</div>
       <div class="wlc-rule-text">Più risposte corrette = più punti e combo!</div>
     </div>
+    <div class="wlc-rule">
+      <div class="wlc-rule-icon">🔥</div>
+      <div class="wlc-rule-text">Abbina 3 celle della stessa categoria di fila per scatenare una <strong>RAFFICA!</strong> ⚡ — punti triplicati!</div>
+    </div>
   </div>
   <div class="wlc-bottom">
     <button class="btn-wlc" id="btn-welcome">Inizia a giocare →</button>
@@ -739,11 +783,17 @@ body{
     <div class="score-num" id="score">0</div>
     <div class="combo-badge" id="combo">×2</div>
   </div>
+  <div class="raffica-bar" id="raffica-bar" style="display:none"></div>
   <div class="legend" id="legend"></div>
   <div class="grid-wrap"><div class="grid" id="grid"></div></div>
   <div class="prog-area">
     <div class="prog-label" id="prog-label">0/10 coppie</div>
     <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
+  </div>
+  <div id="raffica-overlay">
+    <div class="raffica-bg" id="raffica-bg"></div>
+    <div class="raffica-text" id="raffica-text"></div>
+    <div class="raffica-subtext" id="raffica-subtext"></div>
   </div>
 </div>
 
@@ -1063,6 +1113,109 @@ const QUESTIONS=[
   {cat:'wild',text:'Quante lingue diverse si parlano solo in Papua Nuova Guinea?',
    opts:['120','340','840','1.600'],ok:2,
    fact:'Papua Nuova Guinea ha 840 lingue in un paese di 8 milioni di abitanti — villaggi a pochi km di distanza che non si capiscono tra loro. È il paese linguisticamente più diverso del pianeta. Il tok pisin, una lingua creola nata nel XIX secolo, serve da lingua comune nazionale.'},
+
+  // ── NUOVE DOMANDE FACILI (difficoltà 1) ──────────────────────────
+  // ── GEO facili ──
+  {cat:'geo',diff:1,text:'Qual è la capitale d\'Italia?',
+   opts:['Milano','Roma','Napoli','Torino'],ok:1,
+   fact:'Roma fu abitata senza interruzioni per almeno 3.000 anni. La città è costruita su strati di storia: scavando una metropolitana si trovano regolarmente reperti romani che bloccano i lavori per anni. Roma è la città con più fontane al mondo: oltre 2.000.'},
+  {cat:'geo',diff:1,text:'Quale oceano si trova tra Europa e America?',
+   opts:['Pacifico','Atlantico','Indiano','Artico'],ok:1,
+   fact:'L\'Atlantico cresce di circa 2-3 cm l\'anno — lo stesso tasso delle unghie — perché il fondale si espande lungo la dorsale medio-atlantica. Tra 200 milioni di anni Europa e America saranno ancora più distanti di oggi.'},
+  {cat:'geo',diff:1,text:'Qual è la montagna più alta del mondo?',
+   opts:['K2','Monte Bianco','Everest','Kilimanjaro'],ok:2,
+   fact:'L\'Everest cresce di circa 5 mm l\'anno per effetto delle placche tettoniche. La sua cima è nella stratosfera, alla stessa altitudine dei jet di linea. Eppure ci sono state salite dal campo base alla vetta in meno di 8 ore.'},
+  {cat:'geo',diff:1,text:'In quale paese si trova la Torre Eiffel?',
+   opts:['Italia','Spagna','Francia','Belgio'],ok:2,
+   fact:'La Torre Eiffel fu costruita nel 1889 come struttura temporanea per l\'Esposizione Universale e doveva essere demolita dopo 20 anni. Fu salvata perché funzionava come antenna radio. Oggi è l\'opera d\'arte più visitata al mondo: circa 7 milioni di persone l\'anno.'},
+
+  // ── SCI facili ──
+  {cat:'sci',diff:1,text:'Quante zampe ha un insetto?',
+   opts:['4','6','8','10'],ok:1,
+   fact:'Avere 6 zampe è la definizione stessa di insetto. I ragni ne hanno 8 e sono aracnidi, non insetti. Gli insetti sono il gruppo animale più numeroso del pianeta: per ogni essere umano esistono circa 1,4 miliardi di insetti.'},
+  {cat:'sci',diff:1,text:'Qual è il pianeta più grande del sistema solare?',
+   opts:['Saturno','Nettuno','Giove','Urano'],ok:2,
+   fact:'Giove è così grande che tutti gli altri pianeti del sistema solare potrebbero entrarci contemporaneamente con spazio avanzato. La Grande Macchia Rossa — una tempesta sulla sua superficie — esiste da almeno 350 anni ed è grande quanto la Terra.'},
+  {cat:'sci',diff:1,text:'Quanti denti permanenti ha un adulto?',
+   opts:['24','28','32','36'],ok:2,
+   fact:'Gli adulti hanno 32 denti inclusi i denti del giudizio — ma molti li fanno togliere perché non c\'è spazio. I denti sono l\'unica parte del corpo che non si rigenera. Ogni dente è unico come un\'impronta digitale: nessuno ha la stessa dentatura.'},
+  {cat:'sci',diff:1,text:'In quale organo vengono filtrati i rifiuti del sangue?',
+   opts:['Fegato','Reni','Polmoni','Stomaco'],ok:1,
+   fact:'I reni filtrano circa 180 litri di sangue al giorno — tutto il sangue del corpo viene ripulito ogni 30 minuti. Ogni rene contiene circa 1 milione di nefroni (unità filtranti), ciascuno grande come un capello.'},
+
+  // ── HIST facili ──
+  {cat:'hist',diff:1,text:'Chi costruì le Piramidi di Giza?',
+   opts:['Gli Schiavi','I Greci','Gli Egizi','I Romani'],ok:2,
+   fact:'Le Piramidi non furono costruite da schiavi — lo sappiamo dagli archivi egizi. Erano operai qualificati, pagati con birra, pane e cure mediche. I papiri mostrano anche che si lamentavano dei propri capi, esattamente come oggi.'},
+  {cat:'hist',diff:1,text:'In quale anno arrivò Colombo in America?',
+   opts:['1288','1392','1492','1592'],ok:2,
+   fact:'Colombo pensò di aver raggiunto le Indie fino alla morte — non seppe mai di aver "scoperto" un nuovo continente. Il continente fu chiamato America in onore di Amerigo Vespucci, che per primo capì che si trattava di una terra nuova.'},
+  {cat:'hist',diff:1,text:'Quale popolo antico costruì il Colosseo a Roma?',
+   opts:['I Greci','I Romani','Gli Etruschi','I Cartaginesi'],ok:1,
+   fact:'Il Colosseo fu costruito in soli 8 anni (72-80 d.C.) da circa 60.000 operai. Poteva contenere fino a 80.000 spettatori. Aveva 80 ingressi e si svuotava in 15 minuti — più veloce di molti stadi moderni.'},
+  {cat:'hist',diff:1,text:'Chi fu il primo uomo ad andare nello spazio?',
+   opts:['Neil Armstrong','Buzz Aldrin','Alan Shepard','Yuri Gagarin'],ok:3,
+   fact:'Yuri Gagarin compì il primo volo spaziale il 12 aprile 1961, girando intorno alla Terra in 108 minuti. Prima del lancio disse: "Poekhali!" (Andiamo!). Morì 7 anni dopo in un incidente aereo. Aveva 34 anni.'},
+
+  // ── ART facili ──
+  {cat:'art',diff:1,text:'Chi scrisse Romeo e Giulietta?',
+   opts:['Dante Alighieri','William Shakespeare','Miguel de Cervantes','Molière'],ok:1,
+   fact:'Shakespeare scrisse Romeo e Giulietta intorno al 1595 ambientandola a Verona — città che non aveva mai visitato. Ogni anno migliaia di turisti visitano la "casa di Giulietta" a Verona: un edificio medievale scelto arbitrariamente negli anni \'30 come attrazione turistica.'},
+  {cat:'art',diff:1,text:'Chi dipinse La Notte Stellata?',
+   opts:['Claude Monet','Pablo Picasso','Vincent van Gogh','Paul Gauguin'],ok:2,
+   fact:'Van Gogh dipinse La Notte Stellata nel giugno 1889 mentre era ricoverato volontariamente in manicomio. Vendette un solo dipinto in vita sua. Oggi le sue opere valgono centinaia di milioni. Il celebre taglio dell\'orecchio fu probabilmente causato da un attacco di epilessia, non da romantica follia.'},
+  {cat:'art',diff:1,text:'Quante sinfonie compose Beethoven?',
+   opts:['5','7','9','12'],ok:2,
+   fact:'La Nona Sinfonia fu eseguita nel 1824 quando Beethoven era completamente sordo. Al termine, continuò a "dirigere" dopo che l\'orchestra aveva smesso. Uno dei solisti lo girò verso il pubblico per fargli vedere gli applausi — non li aveva sentiti.'},
+  {cat:'art',diff:1,text:'Quale pittore spagnolo è famoso per aver co-fondato il Cubismo?',
+   opts:['Salvador Dalí','Joan Miró','Pablo Picasso','Francisco Goya'],ok:2,
+   fact:'Picasso fu così prolifico che le sue opere rappresentano il 43% di tutti i furti d\'arte al mondo. Dipinse oltre 20.000 opere in 75 anni. La sua firma valeva così tanto che smise di firmare assegni nei ristoranti: i titolari li incorniciavano invece di incassarli.'},
+
+  // ── WILD facili ──
+  {cat:'wild',diff:1,text:'Quante zampe ha un ragno?',
+   opts:['4','6','8','10'],ok:2,
+   fact:'I ragni non sono insetti ma aracnidi — come scorpioni e zecche. Hanno 8 zampe e in genere 8 occhi. Esistono da 380 milioni di anni e sono sopravvissuti a tutte le grandi estinzioni di massa. Ci sono circa 45.000 specie di ragni note alla scienza.'},
+  {cat:'wild',diff:1,text:'Qual è l\'animale terrestre più grande del mondo?',
+   opts:['Rinoceronte bianco','Elefante africano','Ippopotamo','Giraffa'],ok:1,
+   fact:'L\'elefante africano può pesare fino a 7 tonnellate. Beve fino a 200 litri d\'acqua al giorno. Ha una memoria straordinaria e riconosce i volti dopo decenni. Il lutto tra gli elefanti somiglia molto a quello umano — restano vicini ai loro defunti per giorni.'},
+  {cat:'wild',diff:1,text:'Quanti lati ha un esagono?',
+   opts:['5','6','7','8'],ok:1,
+   fact:'In natura le celle dell\'alveare delle api hanno forma esagonale perché è la forma che usa meno cera per il massimo spazio. Le api hanno "scoperto" questa geometria ottimale che la matematica ha formalizzato rigorosamente solo nel 1999. Ogni ape operaia vive 45 giorni e produce 1/12 di cucchiaino di miele.'},
+  {cat:'wild',diff:1,text:'Di che colori è la bandiera italiana?',
+   opts:['Rosso bianco blu','Verde bianco rosso','Blu bianco rosso','Verde giallo rosso'],ok:1,
+   fact:'Il Tricolore italiano fu adottato nel 1797 — ispirato dalla bandiera francese ma con verde al posto del blu. Napoleone lo introdusse per i suoi eserciti italiani. Il verde simboleggiava le pianure, il bianco le Alpi, il rosso il sangue versato.'},
+
+  // ── GRECIA & ROMA — domande per Mondo 2 ────────────────────────
+  {cat:'hist',diff:1,text:'In quale città greca nacque la democrazia?',
+   opts:['Sparta','Atene','Corinto','Tebe'],ok:1,
+   fact:'Atene inventò la democrazia nel 508 a.C. con Clistene. Ma non era come la democrazia moderna: votavano solo i cittadini maschi adulti — circa il 10-15% della popolazione. Donne, schiavi e stranieri erano esclusi. Eppure cambiò il mondo per sempre.'},
+  {cat:'hist',diff:1,text:'Chi fu il primo imperatore romano?',
+   opts:['Giulio Cesare','Nerone','Augusto','Traiano'],ok:2,
+   fact:'Augusto regnò 44 anni (27 a.C.-14 d.C.) — il più lungo della storia romana. Sotto di lui nacque Gesù. Quando morì disse: "Ho trovato Roma di mattoni e la lascio di marmo." La parola "agosto" deriva dal suo nome.'},
+  {cat:'hist',diff:1,text:'Come si chiamava la famosa regina d\'Egitto dell\'antichità?',
+   opts:['Nefertiti','Cleopatra','Hatshepsut','Berenice'],ok:1,
+   fact:'Cleopatra non era egiziana ma di origine macedone greca. Era l\'unica della sua dinastia a parlare la lingua egiziana. La storia del suicidio con un serpente è probabilmente inventata — potrebbe essersi avvelenata con un veleno liquido.'},
+  {cat:'hist',diff:2,text:'Quale schiavo guidò la più grande rivolta contro Roma?',
+   opts:['Massimo','Vercingetorige','Spartaco','Annibale'],ok:2,
+   fact:'Spartaco guidò 120.000 schiavi e sconfisse 8 eserciti romani tra il 73 e il 71 a.C. I 6.000 sopravvissuti furono crocifissi lungo la Via Appia. Il suo corpo non fu mai trovato. In tutto il mondo divenne simbolo di ogni lotta per la libertà.'},
+  {cat:'hist',diff:1,text:'Quante colline storiche ha la città di Roma?',
+   opts:['5','7','9','12'],ok:1,
+   fact:'Le sette colline di Roma — Aventino, Celio, Campidoglio, Esquilino, Palatino, Quirinale, Viminale — erano la topografia originale della città. Il Palatino era la residenza degli imperatori: da esso deriva la parola "palazzo" usata in tutte le lingue europee.'},
+  {cat:'art',diff:1,text:'Dove si trova il Partenone, il tempio greco più famoso?',
+   opts:['Sparta','Creta','Atene','Olimpia'],ok:2,
+   fact:'Il Partenone (447-432 a.C.) resistette quasi intatto per 2.000 anni. Nel 1687 i Veneziani lo bombardarono perché i Turchi lo usavano come deposito di polvere da sparo. Nessuna linea del Partenone è perfettamente dritta — i costruttori usarono illusioni ottiche per farlo sembrare perfetto.'},
+  {cat:'geo',diff:1,text:'Su quale mare si affaccia la Grecia?',
+   opts:['Mar Nero','Mar Caspio','Mar Mediterraneo','Mar del Nord'],ok:2,
+   fact:'La Grecia ha oltre 16.000 km di coste — più di qualsiasi altro paese europeo in proporzione alla sua superficie. Ha circa 6.000 isole, di cui solo 227 abitate. Per millenni, il mare fu la via di comunicazione più veloce del mondo antico.'},
+  {cat:'sci',diff:1,text:'Chi fu il matematico greco che calcolò la circonferenza della Terra?',
+   opts:['Pitagora','Euclide','Eratostene','Archimede'],ok:2,
+   fact:'Eratostene calcolò la circonferenza della Terra intorno al 240 a.C. con bastoni, ombre e geometria — senza uscire dal suo studio. Il suo risultato era sbagliato solo del 2% rispetto al valore reale. Lo fece in un\'epoca in cui la maggior parte delle persone non sapeva leggere.'},
+  {cat:'hist',diff:1,text:'Chi fu il grande condottiero macedone che conquistò la Persia?',
+   opts:['Filippo II','Pericle','Alessandro Magno','Leonida'],ok:2,
+   fact:'Alessandro Magno conquistò un impero che si estendeva dalla Grecia all\'India in soli 13 anni, senza mai perdere una battaglia. Morì a Babilonia nel 323 a.C. a soli 32 anni. La causa della morte è ancora dibattuta: febbre tifoide, avvelenamento, o eccessivo consumo di alcol.'},
+  {cat:'wild',diff:2,text:'Quale parola greca significa "amore per la sapienza"?',
+   opts:['Democrazia','Filosofia','Astronomia','Matematica'],ok:1,
+   fact:'"Filosofia" viene dal greco "philos" (amore) + "sophia" (sapienza). Platone fondò la prima università del mondo — l\'Accademia di Atene — nel 387 a.C. Durò 900 anni finché l\'imperatore Giustiniano la chiuse nel 529 d.C. per motivi religiosi.'},
 ];
 
 // 8 citazioni cinematiche, mai consecutive uguali
@@ -1093,32 +1246,54 @@ const CIN_QUOTES=[
    author:'Lao Tzu',ctx:'Tao Te Ching, 64',color:'#2ECC71'},
 ];
 
-// Mondi
+// Mondi (locked calcolato dinamicamente da isWorldUnlocked)
 const WORLDS=[
-  {id:'origini', name:'Origini',        icon:'🌅',desc:'Preistoria, miti, prime civiltà',  total:5,locked:false,circClass:'active'},
-  {id:'civilta', name:'Civiltà Antiche',icon:'🏛️',desc:'Grecia, Roma, Egitto',              total:5,locked:true, circClass:'w2'},
-  {id:'mediterr',name:'Mediterraneo',   icon:'⚓',desc:'Fenici, Islam, Bisanzio',            total:5,locked:true, circClass:'w3'},
-  {id:'viaseta', name:'Via della Seta', icon:'🐉',desc:'Cina, India, Mongoli',              total:5,locked:true, circClass:'w4'},
-  {id:'rinasc',  name:'Rinascimento',   icon:'🎭',desc:'Arte, Scienza, Scoperte',            total:5,locked:true, circClass:'w5'},
+  {id:'origini', name:'Origini',        icon:'🌅',desc:'Preistoria, miti, prime civiltà',  total:15,circClass:'active'},
+  {id:'civilta', name:'Civiltà Antiche',icon:'🏛️',desc:'Grecia, Roma, Egitto',              total:5, circClass:'w2'},
+  {id:'mediterr',name:'Mediterraneo',   icon:'⚓',desc:'Fenici, Islam, Bisanzio',            total:5, circClass:'w3'},
+  {id:'viaseta', name:'Via della Seta', icon:'🐉',desc:'Cina, India, Mongoli',              total:5, circClass:'w4'},
+  {id:'rinasc',  name:'Rinascimento',   icon:'🎭',desc:'Arte, Scienza, Scoperte',            total:5, circClass:'w5'},
 ];
 
 // Posizioni nodi worldmap (centro, in 390×700)
 const WM_POS=[[100,618],[270,482],[108,348],[268,214],[184,88]];
 
-// Configurazione livelli Mondo 1
+// Configurazione livelli
 const LEVEL_CFGS={
   origini:[
-    {n:1,pairs:5, lives:3,diff:1,type:'easy',  name:'Primo Passo', maxMoves:null},
-    {n:2,pairs:8, lives:3,diff:1,type:'easy',  name:'Curioso',     maxMoves:null},
-    {n:3,pairs:10,lives:3,diff:2,type:'medium',name:'Pensatore',   maxMoves:25},
-    {n:4,pairs:8, lives:3,diff:1,type:'easy',  name:'Respiro',     maxMoves:20},
-    {n:5,pairs:12,lives:2,diff:2,type:'boss',  name:'Il Boss',     maxMoves:15},
+    {n:1, pairs:5,  lives:3,diff:1,type:'easy',  name:'Primo Passo',       maxMoves:null},
+    {n:2, pairs:8,  lives:3,diff:1,type:'easy',  name:'Curioso',           maxMoves:null},
+    {n:3, pairs:10, lives:3,diff:2,type:'medium', name:'Pensatore',         maxMoves:25},
+    {n:4, pairs:8,  lives:3,diff:1,type:'easy',  name:'Respiro',           maxMoves:20},
+    {n:5, pairs:12, lives:2,diff:2,type:'boss',  name:'Il Boss',           maxMoves:15},
+    {n:6, pairs:10, lives:3,diff:1,type:'easy',  name:"L'Esplorazione",    maxMoves:null},
+    {n:7, pairs:12, lives:3,diff:2,type:'medium', name:'Labirinto',         maxMoves:28},
+    {n:8, pairs:14, lives:3,diff:2,type:'medium', name:'Tra le Rovine',     maxMoves:32},
+    {n:9, pairs:8,  lives:3,diff:1,type:'easy',  name:'Respiro II',        maxMoves:20},
+    {n:10,pairs:15, lives:2,diff:2,type:'boss',  name:'Boss delle Origini',maxMoves:18},
+    {n:11,pairs:10, lives:3,diff:2,type:'medium', name:'Il Risveglio',      maxMoves:null},
+    {n:12,pairs:12, lives:3,diff:2,type:'medium', name:'Il Cammino',        maxMoves:30},
+    {n:13,pairs:14, lives:3,diff:2,type:'medium', name:'Tra le Stelle',     maxMoves:35},
+    {n:14,pairs:8,  lives:3,diff:1,type:'easy',  name:'Ultimo Respiro',    maxMoves:22},
+    {n:15,pairs:18, lives:2,diff:2,type:'boss',  name:'Boss Finale',       maxMoves:20},
+  ],
+  civilta:[
+    {n:1, pairs:6,  lives:3,diff:1,type:'easy',  name:'Atene',             maxMoves:null},
+    {n:2, pairs:8,  lives:3,diff:1,type:'easy',  name:'La Repubblica',     maxMoves:null},
+    {n:3, pairs:10, lives:3,diff:2,type:'medium', name:"L'Impero",          maxMoves:25},
+    {n:4, pairs:8,  lives:3,diff:1,type:'easy',  name:'Pax Romana',        maxMoves:20},
+    {n:5, pairs:12, lives:2,diff:2,type:'boss',  name:'Cesare',            maxMoves:15},
   ],
 };
 
-// Posizioni nodi livelli (SVG 0 0 350 290)
-// Snake: L1(55,240)→L2(178,240)→L3(300,240), curva su, L4(300,90), L5(178,90)
-const LV_POS={1:[55,240],2:[178,240],3:[300,240],4:[300,90],5:[178,90]};
+// Posizioni nodi livelli — griglia serpentina 350×780 (per 15 livelli)
+// Ogni 5 livelli una "riga", boss sempre al nodo 5/10/15
+const LV_POS={
+  1:[55,730], 2:[175,730], 3:[295,730],
+  4:[295,620], 5:[175,580],
+  6:[55,540],  7:[55,440],  8:[175,400], 9:[295,440], 10:[295,340],
+  11:[175,300],12:[55,260], 13:[55,150], 14:[175,110],15:[295,150],
+};
 
 // ════════════════════════════════════════════════════════ PROGRESS
 
@@ -1139,6 +1314,16 @@ function isUnlocked(wid,n){
 }
 function worldDone(wid){
   return(LEVEL_CFGS[wid]||[]).filter(c=>{const p=getLvP(wid,c.n);return p&&p.stars>0}).length;
+}
+function isWorldUnlocked(worldIdx){
+  if(worldIdx===0)return true;
+  const prev=WORLDS[worldIdx-1];
+  if(!prev)return false;
+  const prevCfgs=LEVEL_CFGS[prev.id]||[];
+  if(!prevCfgs.length)return false;
+  const lastLv=prevCfgs[prevCfgs.length-1];
+  const prog=getLvP(prev.id,lastLv.n);
+  return prog!==null&&prog.stars>0;
 }
 
 // ════════════════════════════════════════════════════════ STATE
@@ -1344,13 +1529,16 @@ function renderWorldMap(){
   <style>@keyframes path-flow{from{stroke-dashoffset:0}to{stroke-dashoffset:-44}}</style>
   ${WORLDS.map((w,i)=>{
     const [x,y]=WM_POS[i];
+    const locked=!isWorldUnlocked(i);
     const done=worldDone(w.id);
-    const progTxt=w.locked?'🔒':(done===w.total?`${done}/${w.total} ✓`:`${done}/${w.total}`);
+    const cfgCount=(LEVEL_CFGS[w.id]||[]).length;
+    const totalShown=cfgCount||w.total;
+    const progTxt=locked?'🔒':(done===totalShown?`${done}/${totalShown} ✓`:`${done}/${totalShown}`);
     return `
-    <div class="wm-node${w.locked?' locked':''}" style="left:${x}px;top:${y}px" data-wid="${w.id}">
-      ${!w.locked?'<div class="wm-ripple"></div>':''}
-      <div class="wm-circle ${w.locked?'locked-c':w.circClass}">
-        ${w.locked?'🔒':w.icon}
+    <div class="wm-node${locked?' locked':''}" style="left:${x}px;top:${y}px" data-wid="${w.id}">
+      ${!locked?'<div class="wm-ripple"></div>':''}
+      <div class="wm-circle ${locked?'locked-c':w.circClass}">
+        ${locked?'🔒':w.icon}
       </div>
       <div class="wm-label">${w.name}</div>
       <div class="wm-sublabel">${progTxt}</div>
@@ -1359,6 +1547,14 @@ function renderWorldMap(){
 
   $('wm-body').querySelectorAll('.wm-node:not(.locked)').forEach(el=>
     el.addEventListener('click',()=>{ nav.worldId=el.dataset.wid; showLevels(el.dataset.wid); })
+  );
+  $('wm-body').querySelectorAll('.wm-node.locked').forEach(el=>
+    el.addEventListener('click',()=>{
+      const circ=el.querySelector('.wm-circle');
+      if(!circ)return;
+      circ.style.animation='lock-jiggle .5s ease';
+      setTimeout(()=>{circ.style.animation=''},520);
+    })
   );
 }
 
@@ -1372,13 +1568,18 @@ function showLevels(wid){
   $('lv-world-desc').textContent=world.desc;
 
   const p=LV_POS;
-  // SVG path per i livelli
-  const pathD=`M ${p[1][0]},${p[1][1]} L ${p[2][0]},${p[2][1]} L ${p[3][0]},${p[3][1]}`
-    +` C ${p[3][0]},${p[3][1]-70} ${p[4][0]},${p[4][1]+70} ${p[4][0]},${p[4][1]}`
-    +` L ${p[5][0]},${p[5][1]}`;
+  // SVG path dinamico che connette tutti i nodi
+  const n=cfgs.length;
+  const pathH=n<=5?290:n<=10?600:800;
+  $('lv-path').style.height=pathH+'px';
+  let pathD='';
+  for(let i=1;i<=n;i++){
+    if(!p[i])continue;
+    pathD+=(i===1?`M ${p[i][0]},${p[i][1]}`:`L ${p[i][0]},${p[i][1]}`)+' ';
+  }
 
   $('lv-path').innerHTML=`
-  <svg class="lv-path-svg" viewBox="0 0 350 290" xmlns="http://www.w3.org/2000/svg">
+  <svg class="lv-path-svg" viewBox="0 0 350 ${pathH}" xmlns="http://www.w3.org/2000/svg">
     <path d="${pathD}" stroke="#D8D4CD" stroke-width="8"
       stroke-linecap="round" stroke-linejoin="round" fill="none"/>
   </svg>
@@ -1459,7 +1660,11 @@ function freshGs(cfg){
          combo:1,pairs:0,errors:0,answered:false,
          timerSec:15,timerH:null,curQ:null,cfg,
          moves:0,maxMoves:cfg.maxMoves??null,
-         pendingA:null,pendingB:null,lastMatchCorrect:false};
+         pendingA:null,pendingB:null,lastMatchCorrect:false,
+         // Raffica system
+         rafficaCat:null,rafficaCount:0,rafficaLastMatchTime:0,
+         rafficaBonus:false,pendingRaffica:null,
+         pendingCat:null,pendingMatchTime:0};
 }
 
 function rLives(){$('lives').innerHTML=[1,2,3].map(i=>`<span class="heart${i>gs.lives?' lost':''}">❤️</span>`).join('')}
@@ -1479,6 +1684,76 @@ function rProgress(){
   $('prog-fill').style.width=Math.min((gs.pairs/gs.cfg.pairs)*100,100)+'%';
   $('prog-label').textContent=`${gs.pairs}/${gs.cfg.pairs} coppie`;
 }
+function rRaffBar(){
+  const el=$('raffica-bar'); if(!el)return;
+  if(gs.rafficaCount>=2&&gs.rafficaCat){
+    const cat=CATS[gs.rafficaCat];
+    const left=3-gs.rafficaCount;
+    el.style.display='flex';
+    el.style.background=cat.bg;
+    el.style.color=cat.fg;
+    if(left>0){
+      el.textContent=`${cat.emoji} ${gs.rafficaCount}→ ancora ${left} per RAFFICA! ⚡`;
+    } else {
+      el.textContent=`${cat.emoji} RAFFICA IN CORSO × ${gs.rafficaCount}! ⚡`;
+    }
+  } else {
+    el.style.display='none';
+  }
+}
+
+function triggerRaffica(type, cat, onDone){
+  const catD=CATS[cat]||CATS['wild'];
+  const overlay=$('raffica-overlay');
+  const textEl=$('raffica-text');
+  const subEl=$('raffica-subtext');
+  const bgEl=$('raffica-bg');
+
+  const info={
+    normal:  {main:'RAFFICA! ⚡',      sub:'Punti ×3!',                      col:catD.bg},
+    super:   {main:'SUPER RAFFICA! ⚡⚡',sub:'+1 Vita! Punti ×5!',            col:catD.bg},
+    leggenda:{main:'LEGGENDA! 🏆',     sub:'Incredibile! Punti ×7!',         col:'#FFF3DC'},
+  };
+  const t=info[type]||info.normal;
+
+  textEl.textContent=t.main;
+  subEl.textContent=t.sub;
+  bgEl.style.background=t.col;
+
+  textEl.style.animation='none';
+  textEl.style.transform='scale(0)';
+  void textEl.offsetWidth;
+  textEl.style.animation='raffica-pop .5s cubic-bezier(.34,1.56,.64,1) forwards';
+
+  overlay.style.opacity='0';
+  overlay.style.display='flex';
+  overlay.style.transition='opacity .15s';
+  requestAnimationFrame(()=>{
+    requestAnimationFrame(()=>{
+      overlay.style.opacity='1';
+      overlay.classList.add('raffica-overlay-visible');
+    });
+  });
+
+  const dur=type==='leggenda'?2000:1500;
+  gtag('event','raffica_triggered',{type:type,category:cat,level_n:nav.levelN});
+
+  setTimeout(()=>{
+    overlay.style.transition='opacity .35s';
+    overlay.style.opacity='0';
+    overlay.classList.remove('raffica-overlay-visible');
+    setTimeout(()=>{
+      overlay.style.display='none';
+      rRaffBar();
+      if(type==='leggenda'){
+        showCinematic(onDone||(()=>{}));
+      } else if(onDone){
+        onDone();
+      }
+    },350);
+  },dur);
+}
+
 function rLegend(){
   $('legend').innerHTML=CKEYS.map(k=>{
     const c=CATS[k];
@@ -1503,28 +1778,32 @@ function launchGame(wid,cfg){
   nav.worldId=wid;nav.levelN=cfg.n;
   gs=freshGs(cfg);gs.board=newBoard();
   $('overlay').classList.remove('open');
-  rLives();rScore();rCombo();rProgress();rMoves();rLegend();rGrid();
+  const ro=$('raffica-overlay');if(ro)ro.style.display='none';
+  rLives();rScore();rCombo();rProgress();rMoves();rLegend();rGrid();rRaffBar();
   showScreen('game');
   gtag('event','level_start',{world_id:wid,level_n:cfg.n,level_name:cfg.name||''});
 }
 
 // ════════════════════════════════════════════════════════ QUESTION MODAL
 
-function pickQ(cat){
-  // Raccoglie tutte le domande della categoria con il loro indice globale
+function pickQ(cat, preferEasy){
   const catEntries=QUESTIONS.map((q,i)=>({q,i})).filter(({q})=>q.cat===cat);
   if(!catEntries.length)return QUESTIONS[Math.floor(Math.random()*QUESTIONS.length)];
-  // Filtra quelle non ancora viste in questa sessione
   let available=catEntries.filter(({i})=>!seenQs[cat].has(i));
-  // Se le abbiamo viste tutte, reset e ricomincia
   if(!available.length){seenQs[cat].clear();available=catEntries;}
+  // Preferisci domande facili se raffica bonus attivo
+  if(preferEasy){
+    const easy=available.filter(({q})=>q.diff===1);
+    if(easy.length>0)available=easy;
+  }
   const pick=available[Math.floor(Math.random()*available.length)];
   seenQs[cat].add(pick.i);
   return pick.q;
 }
 
 function openModal(cat){
-  const q=pickQ(cat);gs.curQ=q;gs.answered=false;
+  const q=pickQ(cat, gs.rafficaBonus); gs.rafficaBonus=false;
+  gs.curQ=q;gs.answered=false;
   const c=CATS[cat],badge=$('cat-badge');
   badge.textContent=`${c.emoji}  ${c.label}`;
   badge.style.background=c.bg;badge.style.color=c.fg;
@@ -1563,14 +1842,38 @@ function onAnswer(chosen){
   });
 
   if(correct){
+    // Aggiorna raffica
+    const now=gs.pendingMatchTime||Date.now();
+    const timeSinceLast=now-gs.rafficaLastMatchTime;
+    if(gs.pendingCat===gs.rafficaCat&&timeSinceLast<10000&&gs.rafficaCount>0){
+      gs.rafficaCount++;
+    } else {
+      gs.rafficaCat=gs.pendingCat;
+      gs.rafficaCount=1;
+    }
+    gs.rafficaLastMatchTime=now;
+
+    // Moltiplicatore punteggio raffica
+    let mult=1,rafficaType=null;
+    if(gs.rafficaCount===3){mult=3;rafficaType='normal';}
+    else if(gs.rafficaCount===4){mult=5;rafficaType='super';}
+    else if(gs.rafficaCount>=5){mult=7;rafficaType='leggenda';}
+
     // Match confermato: conta coppia e assegna punti
     gs.pairs++;
-    gs.score+=50+100*Math.max(1,gs.combo);
+    gs.score+=(50+100*Math.max(1,gs.combo))*mult;
     gs.combo=Math.min(gs.combo+1,5);
+
+    if(rafficaType){
+      gs.rafficaBonus=true;
+      gs.pendingRaffica=rafficaType;
+      if(rafficaType==='super'){gs.lives=Math.min(gs.lives+1,3);}
+    }
   } else {
     // Risposta sbagliata/timeout: match annullato, vita persa
     gs.errors++;
     gs.combo=1;
+    gs.rafficaCount=0; gs.rafficaCat=null; // azzera raffica silenziosamente
     gs.lives=Math.max(0,gs.lives-1);
     // Ripristina celle pendenti
     if(gs.pendingA!==null)gs.board[gs.pendingA].gone=false;
@@ -1578,7 +1881,7 @@ function onAnswer(chosen){
     rLives();
   }
 
-  rScore(); rCombo(); rProgress();
+  rScore(); rCombo(); rProgress(); rRaffBar();
 
   gtag('event','question_answered',{correct:correct,timed_out:timedOut,category:q.cat,level_n:nav.levelN});
 
@@ -1597,7 +1900,6 @@ function closeModal(){
     gs.board=gravity(gs.board); rGrid();
 
     if(!gs.lastMatchCorrect){
-      // Celle ritornate — animazione shake in rosso
       [gs.pendingA,gs.pendingB].forEach(idx=>{
         if(idx===null)return;
         const el=document.querySelector(`.cell[data-i="${idx}"]`);
@@ -1605,6 +1907,18 @@ function closeModal(){
       });
     }
     gs.pendingA=null; gs.pendingB=null;
+
+    // Raffica pending?
+    if(gs.pendingRaffica){
+      const rt=gs.pendingRaffica; const cat=gs.rafficaCat;
+      gs.pendingRaffica=null;
+      triggerRaffica(rt,cat,()=>{
+        if(gs.lives<=0)showResult(false);
+        else if(gs.pairs>=gs.cfg.pairs)showResult(true);
+        else if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)showResult(true);
+      });
+      return;
+    }
 
     // Check fine livello
     if(gs.lives<=0)return showResult(false);
@@ -1649,6 +1963,7 @@ function onCell(i){
   if(a.cat===b.cat){
     // Match valido — celle pendenti, attendiamo la risposta alla domanda
     gs.pendingA=gs.sel; gs.pendingB=i;
+    gs.pendingCat=b.cat; gs.pendingMatchTime=Date.now();
     gs.board[gs.sel].gone=true; gs.board[i].gone=true;
     if(elA){elA.classList.remove('sel');elA.classList.add('gone')}
     if(elB)elB.classList.add('gone');
@@ -1733,9 +2048,14 @@ function showResult(win){
   // Bottone prossimo livello
   const cfgs=LEVEL_CFGS[nav.worldId]||[];
   const nextCfg=cfgs.find(c=>c.n===nav.levelN+1);
+  const wIdx=WORLDS.findIndex(w=>w.id===nav.worldId);
+  const nextWorldUnlocked=win&&!nextCfg&&isWorldUnlocked(wIdx+1);
   const btnNext=$('btn-next');
   if(win&&nextCfg){
     btnNext.textContent=`Livello ${nextCfg.n}: ${nextCfg.name} →`;
+    btnNext.classList.remove('btn-hide');
+  } else if(nextWorldUnlocked){
+    btnNext.textContent=`🏛️ Mondo ${wIdx+2} sbloccato! →`;
     btnNext.classList.remove('btn-hide');
   } else if(win&&!nextCfg){
     btnNext.textContent='🏆 Mondo completato!';
@@ -1901,8 +2221,17 @@ $('btn-cont').addEventListener('click',closeModal);
 $('btn-next').addEventListener('click',()=>{
   const cfgs=LEVEL_CFGS[nav.worldId]||[];
   const next=cfgs.find(c=>c.n===nav.levelN+1);
-  if(next)showCinematic(()=>launchGame(nav.worldId,next));
-  else goHome();
+  if(next){
+    showCinematic(()=>launchGame(nav.worldId,next));
+  } else {
+    // Controlla se abbiamo appena sbloccato un nuovo mondo
+    const wIdx=WORLDS.findIndex(w=>w.id===nav.worldId);
+    if(wIdx>=0&&isWorldUnlocked(wIdx+1)){
+      goWorldMap(); // Va alla mappa per mostrare il mondo sbloccato
+    } else {
+      goHome();
+    }
+  }
 });
 $('btn-replay').addEventListener('click',()=>{
   const cfg=(LEVEL_CFGS[nav.worldId]||[]).find(c=>c.n===nav.levelN);
