@@ -4,6 +4,13 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>WizzPop — Preview</title>
+<!-- PWA -->
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#5349B7">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="WizzPop">
+<link rel="apple-touch-icon" href="icon-192.png">
 <!-- Google Analytics GA4 -->
 <script async src="https://www.googletagmanager.com/gtag/js?id=G-GX72TYSCFT"></script>
 <script>
@@ -671,9 +678,130 @@ body{
   body{background:var(--bg);align-items:flex-start}
   #phone{border-radius:0;width:100vw;height:100dvh;box-shadow:none}
 }
+
+/* ═══════════════════════════════════════ INSTALL BANNER */
+#install-banner{
+  position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);
+  width:390px;max-width:100vw;
+  background:#1A1A18;border-top:2px solid var(--primary);
+  border-radius:18px 18px 0 0;
+  padding:14px 16px 28px;
+  display:flex;align-items:center;gap:12px;
+  z-index:9999;
+  transition:transform .4s cubic-bezier(.32,.72,0,1);
+  box-shadow:0 -8px 32px rgba(0,0,0,.5);
+}
+#install-banner.show{transform:translateX(-50%) translateY(0)}
+.ib-icon{font-size:28px;flex-shrink:0}
+.ib-text{flex:1;display:flex;flex-direction:column;gap:2px}
+.ib-title{font-size:14px;font-weight:800;color:#fff;line-height:1.3}
+.ib-sub{font-size:12px;color:rgba(255,255,255,.5);line-height:1.4}
+.ib-btn{
+  background:var(--primary);color:#fff;border:none;
+  border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;
+  cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;
+  transition:transform .12s;
+}
+.ib-btn:active{transform:scale(.95)}
+.ib-close{
+  background:none;border:none;color:rgba(255,255,255,.35);
+  font-size:20px;cursor:pointer;flex-shrink:0;line-height:1;padding:4px;
+  transition:color .15s;
+}
+.ib-close:hover{color:rgba(255,255,255,.7)}
+
+/* ═══════════════════════════════════════ INSTALL MODAL */
+#install-modal{
+  position:fixed;inset:0;
+  background:#0A0806;
+  z-index:10000;
+  display:flex;flex-direction:column;
+  transform:translateY(100%);
+  transition:transform .4s cubic-bezier(.32,.72,0,1);
+  max-width:430px;margin:0 auto;
+}
+#install-modal.show{transform:translateY(0)}
+.im-hdr{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:20px 20px 0;flex-shrink:0;
+}
+.im-title{font-size:20px;font-weight:900;color:#fff;line-height:1.3}
+.im-close{background:none;border:none;color:rgba(255,255,255,.4);font-size:24px;cursor:pointer;padding:4px}
+.im-close:hover{color:#fff}
+.im-steps{
+  flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:12px;
+}
+.im-step{
+  background:rgba(255,255,255,.05);border-radius:16px;
+  padding:16px;display:flex;align-items:center;gap:14px;
+  border:1px solid rgba(255,255,255,.08);
+}
+.im-step-num{
+  width:32px;height:32px;border-radius:50%;
+  background:var(--primary);color:#fff;
+  display:flex;align-items:center;justify-content:center;
+  font-size:14px;font-weight:900;flex-shrink:0;
+}
+.im-step-icon{font-size:26px;flex-shrink:0}
+.im-step-text{font-size:14px;color:rgba(255,255,255,.85);line-height:1.45;flex:1}
+.im-step-text strong{color:#fff}
+.im-footer{
+  padding:16px 20px 36px;flex-shrink:0;
+}
+.im-cta{
+  width:100%;background:var(--primary);color:#fff;border:none;
+  border-radius:14px;padding:16px;font-size:16px;font-weight:700;
+  cursor:pointer;font-family:inherit;
+  box-shadow:0 4px 20px rgba(83,73,183,.4);
+  transition:transform .12s;
+}
+.im-cta:active{transform:scale(.97)}
+
+/* ═══════════════════════════════════════ WELCOME TOAST */
+#welcome-toast{
+  position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-100%);
+  width:390px;max-width:100vw;
+  background:#1D4D1A;border-bottom:2px solid var(--ok);
+  padding:14px 20px;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  z-index:9999;
+  transition:transform .4s cubic-bezier(.32,.72,0,1);
+  box-shadow:0 4px 20px rgba(0,0,0,.3);
+}
+#welcome-toast.show{transform:translateX(-50%) translateY(0)}
+.wt-text{font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px}
 </style>
 </head>
 <body>
+
+<!-- ── Install banner (fuori dal phone per stare fisso in basso) ── -->
+<div id="install-banner" role="complementary" aria-label="Installa WizzPop">
+  <div class="ib-icon">⚡</div>
+  <div class="ib-text">
+    <div class="ib-title">Aggiungi WizzPop alla home ⚡</div>
+    <div class="ib-sub">Ritrova il gioco in un tap — come un'app vera</div>
+  </div>
+  <button class="ib-btn" id="ib-install-btn">Installa</button>
+  <button class="ib-close" id="ib-close-btn" aria-label="Chiudi">×</button>
+</div>
+
+<!-- ── Install instructions modal ── -->
+<div id="install-modal" role="dialog" aria-modal="true" aria-label="Istruzioni installazione">
+  <div class="im-hdr">
+    <div class="im-title" id="im-title">Installa WizzPop</div>
+    <button class="im-close" id="im-close-btn" aria-label="Chiudi">×</button>
+  </div>
+  <div class="im-steps" id="im-steps"></div>
+  <div class="im-footer">
+    <button class="im-cta" id="im-cta-btn">Ho capito, installo!</button>
+  </div>
+</div>
+
+<!-- ── Welcome back toast (standalone mode) ── -->
+<div id="welcome-toast" role="status" aria-live="polite">
+  <span class="wt-text">⚡ Bentornato su WizzPop!</span>
+</div>
+
 <div id="phone">
 
 <!-- ══ WELCOME ═══════════════════════════════════════════════════════════ -->
@@ -2364,6 +2492,156 @@ $('btn-save-img').addEventListener('click',()=>{
 $('btn-to-lvls').addEventListener('click',()=>showLevels(nav.worldId));
 
 homeEntrance();
+
+// ════════════════════════════════════════════════════════ PWA
+
+// ── Service Worker ──────────────────────────────────────
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('./sw.js').catch(() => {});
+  });
+}
+
+// ── Standalone detection ─────────────────────────────────
+const isStandalone =
+  window.matchMedia('(display-mode: standalone)').matches ||
+  window.navigator.standalone === true;
+
+// ── OS detection ─────────────────────────────────────────
+function getOS() {
+  const ua = navigator.userAgent;
+  if (/iphone|ipad|ipod/i.test(ua)) return 'ios';
+  if (/android/i.test(ua)) return 'android';
+  return 'other';
+}
+
+// ── Install banner logic ──────────────────────────────────
+const BANNER_KEY = 'wz-install-dismissed';
+let deferredPrompt = null;
+
+window.addEventListener('beforeinstallprompt', e => {
+  e.preventDefault();
+  deferredPrompt = e;
+});
+
+function canShowBanner() {
+  if (isStandalone) return false;
+  const stored = localStorage.getItem(BANNER_KEY);
+  if (!stored) return true;
+  const diff = Date.now() - parseInt(stored, 10);
+  return diff > 7 * 24 * 60 * 60 * 1000; // 7 giorni
+}
+
+function showBanner() {
+  if (!canShowBanner()) return;
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.classList.add('show');
+}
+
+function hideBanner() {
+  const banner = document.getElementById('install-banner');
+  if (banner) banner.classList.remove('show');
+  localStorage.setItem(BANNER_KEY, Date.now().toString());
+}
+
+document.getElementById('ib-close-btn').addEventListener('click', hideBanner);
+
+document.getElementById('ib-install-btn').addEventListener('click', () => {
+  hideBanner();
+  if (deferredPrompt) {
+    // Android Chrome: native prompt
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
+  } else {
+    // iOS or other: mostra istruzioni manuali
+    showInstallModal();
+  }
+});
+
+document.getElementById('im-close-btn').addEventListener('click', hideInstallModal);
+document.getElementById('im-cta-btn').addEventListener('click', hideInstallModal);
+
+function showInstallModal() {
+  const os = getOS();
+  const modal = document.getElementById('install-modal');
+  const title = document.getElementById('im-title');
+  const steps = document.getElementById('im-steps');
+
+  const iosSteps = [
+    { icon: '🔗', text: '<strong>Assicurati di essere su Safari</strong><br>Non Chrome o Firefox — solo Safari può installare le app su iPhone.' },
+    { icon: '↑',  text: '<strong>Tocca il bottone Condividi</strong><br>È in basso al centro del browser, con una freccia verso l\'alto.' },
+    { icon: '➕', text: '<strong>Scorri e tocca "Aggiungi a schermata Home"</strong><br>Scorri le icone delle azioni finché vedi questa voce.' },
+    { icon: '✅', text: '<strong>Tocca "Aggiungi" in alto a destra</strong><br>Conferma il nome e premi Aggiungi.' },
+    { icon: '⚡', text: '<strong>WizzPop apparirà sulla tua home!</strong><br>Aprila come una vera app, senza Safari.' },
+  ];
+
+  const androidSteps = [
+    { icon: '🌐', text: '<strong>Assicurati di essere su Chrome</strong><br>Chrome è il browser che supporta l\'installazione su Android.' },
+    { icon: '⋮',  text: '<strong>Tocca i 3 puntini in alto a destra</strong><br>Apri il menu del browser.' },
+    { icon: '➕', text: '<strong>Tocca "Aggiungi a schermata Home" o "Installa app"</strong><br>La voce dipende dalla versione di Chrome.' },
+    { icon: '✅', text: '<strong>Tocca "Installa" nel popup</strong><br>Conferma l\'installazione.' },
+    { icon: '⚡', text: '<strong>WizzPop apparirà sulla tua home!</strong><br>Aprila come una vera app, senza il browser.' },
+  ];
+
+  const otherSteps = [
+    { icon: '🌐', text: '<strong>Apri questa pagina su Chrome o Edge</strong><br>I browser desktop supportano l\'installazione PWA.' },
+    { icon: '⬇️', text: '<strong>Clicca l\'icona di installazione nella barra degli indirizzi</strong><br>Solitamente è un\'icona con un + o uno schermo con freccia.' },
+    { icon: '✅', text: '<strong>Conferma l\'installazione</strong><br>L\'app apparirà nel menu delle applicazioni.' },
+    { icon: '⚡', text: '<strong>WizzPop è installata!</strong><br>Aprila come una normale applicazione.' },
+  ];
+
+  if (os === 'ios') {
+    title.textContent = 'Installa WizzPop su iPhone';
+    steps.innerHTML = iosSteps.map((s, i) => stepHTML(i + 1, s)).join('');
+  } else if (os === 'android') {
+    title.textContent = 'Installa WizzPop su Android';
+    steps.innerHTML = androidSteps.map((s, i) => stepHTML(i + 1, s)).join('');
+  } else {
+    title.textContent = 'Installa WizzPop';
+    steps.innerHTML = otherSteps.map((s, i) => stepHTML(i + 1, s)).join('');
+  }
+
+  modal.classList.add('show');
+  gtag('event', 'install_modal_open', { os });
+}
+
+function hideInstallModal() {
+  document.getElementById('install-modal').classList.remove('show');
+}
+
+function stepHTML(n, { icon, text }) {
+  return `<div class="im-step">
+    <div class="im-step-num">${n}</div>
+    <div class="im-step-icon">${icon}</div>
+    <div class="im-step-text">${text}</div>
+  </div>`;
+}
+
+// ── Welcome back toast (standalone) ──────────────────────
+if (isStandalone) {
+  const toast = document.getElementById('welcome-toast');
+  if (toast) {
+    setTimeout(() => {
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 3000);
+    }, 600);
+  }
+}
+
+// ── Trigger banner: dopo 45 sec OPPURE dopo il primo livello completato ──
+let bannerTimer = canShowBanner() ? setTimeout(showBanner, 45000) : null;
+
+// Monkey-patch setLvP per intercettare il primo livello completato
+window.__firstLevelDone = false;
+const _origSetLvP = setLvP;
+window.setLvP = function(wid, n, stars, score) {
+  _origSetLvP(wid, n, stars, score);
+  if (!window.__firstLevelDone && stars > 0) {
+    window.__firstLevelDone = true;
+    if (bannerTimer) { clearTimeout(bannerTimer); bannerTimer = null; }
+    setTimeout(showBanner, 2000);
+  }
+};
 </script>
 </body>
 </html>
