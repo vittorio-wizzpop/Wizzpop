@@ -1,8 +1,9 @@
-// Generates icon-192.png and icon-512.png using pure Node.js (no dependencies)
+// Genera icon-192.png e icon-512.png — pure Node.js, no deps
+// Design: gradiente viola, saetta bianca, bordo arancio
 const zlib = require('zlib');
-const fs = require('fs');
+const fs   = require('fs');
 
-// CRC32 table
+// ── CRC32 ─────────────────────────────────────────────────────────────
 const crcTable = new Uint32Array(256);
 for (let i = 0; i < 256; i++) {
   let c = i;
@@ -11,108 +12,165 @@ for (let i = 0; i < 256; i++) {
 }
 function crc32(buf) {
   let crc = 0xFFFFFFFF;
-  for (let i = 0; i < buf.length; i++) crc = (crcTable[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8)) >>> 0;
+  for (let i = 0; i < buf.length; i++)
+    crc = (crcTable[(crc ^ buf[i]) & 0xFF] ^ (crc >>> 8)) >>> 0;
   return (crc ^ 0xFFFFFFFF) >>> 0;
 }
-function chunk(type, data) {
+function pngChunk(type, data) {
   const t = Buffer.from(type, 'ascii');
   const len = Buffer.alloc(4); len.writeUInt32BE(data.length);
-  const crcBuf = Buffer.alloc(4); crcBuf.writeUInt32BE(crc32(Buffer.concat([t, data])));
+  const crcBuf = Buffer.alloc(4);
+  crcBuf.writeUInt32BE(crc32(Buffer.concat([t, data])));
   return Buffer.concat([len, t, data, crcBuf]);
 }
 
-// Bresenham thick line: sets pixels along a line with given half-thickness
-function drawThickLine(pixels, w, x0, y0, x1, y1, r, R, G, B) {
-  const dx = x1 - x0, dy = y1 - y0;
-  const len = Math.hypot(dx, dy);
-  const nx = -dy / len, ny = dx / len; // normal
-  // Rasterize: iterate bounding box
-  const minX = Math.max(0, Math.floor(Math.min(x0, x1) - r));
-  const maxX = Math.min(w - 1, Math.ceil(Math.max(x0, x1) + r));
-  const minY = Math.max(0, Math.floor(Math.min(y0, y1) - r));
-  const maxY = Math.min(w - 1, Math.ceil(Math.max(y0, y1) + r));
-  for (let y = minY; y <= maxY; y++) {
-    for (let x = minX; x <= maxX; x++) {
-      // Project point onto line
-      const px = x - x0, py = y - y0;
-      const t = Math.max(0, Math.min(1, (px * dx + py * dy) / (len * len)));
-      const closestX = x0 + t * dx, closestY = y0 + t * dy;
-      const dist = Math.hypot(x - closestX, y - closestY);
-      if (dist <= r) {
-        const alpha = dist > r - 1 ? Math.round((r - dist) * 255) : 255;
-        const i = (y * w + x) * 4;
-        // Alpha blend
-        const a = alpha / 255;
-        pixels[i]   = Math.round(pixels[i]   * (1 - a) + R * a);
-        pixels[i+1] = Math.round(pixels[i+1] * (1 - a) + G * a);
-        pixels[i+2] = Math.round(pixels[i+2] * (1 - a) + B * a);
-        pixels[i+3] = Math.min(255, pixels[i+3] + alpha);
-      }
-    }
-  }
+// ── Helpers ───────────────────────────────────────────────────────────
+function lerp(a, b, t) { return a + (b - a) * t; }
+function clamp(v, lo, hi) { return v < lo ? lo : v > hi ? hi : v; }
+
+// Alpha-blend (src over dst)
+function blend(pixels, i, r, g, b, a) {
+  if (a === 0) return;
+  if (a === 255) { pixels[i] = r; pixels[i+1] = g; pixels[i+2] = b; pixels[i+3] = 255; return; }
+  const fa = a / 255, ia = 1 - fa;
+  pixels[i]   = Math.round(pixels[i]   * ia + r * fa);
+  pixels[i+1] = Math.round(pixels[i+1] * ia + g * fa);
+  pixels[i+2] = Math.round(pixels[i+2] * ia + b * fa);
+  pixels[i+3] = Math.min(255, pixels[i+3] + a);
 }
 
+// ── Point-in-polygon (ray casting) ───────────────────────────────────
+function pointInPoly(px, py, verts) {
+  let inside = false;
+  const n = verts.length;
+  for (let i = 0, j = n - 1; i < n; j = i++) {
+    const [xi, yi] = verts[i], [xj, yj] = verts[j];
+    if (((yi > py) !== (yj > py)) && px < ((xj - xi) * (py - yi)) / (yj - yi) + xi)
+      inside = !inside;
+  }
+  return inside;
+}
+
+// Signed distance from point to line segment (for anti-aliasing bolt edges)
+function distToSegment(px, py, ax, ay, bx, by) {
+  const dx = bx - ax, dy = by - ay;
+  const lenSq = dx*dx + dy*dy;
+  if (lenSq === 0) return Math.hypot(px - ax, py - ay);
+  const t = clamp(((px - ax)*dx + (py - ay)*dy) / lenSq, 0, 1);
+  return Math.hypot(px - (ax + t*dx), py - (ay + t*dy));
+}
+
+// Min distance from point to polygon edge
+function distToPoly(px, py, verts) {
+  const n = verts.length;
+  let minD = Infinity;
+  for (let i = 0; i < n; i++) {
+    const [ax, ay] = verts[i], [bx, by] = verts[(i+1) % n];
+    minD = Math.min(minD, distToSegment(px, py, ax, ay, bx, by));
+  }
+  return minD;
+}
+
+// ── Main icon creator ─────────────────────────────────────────────────
 function createIcon(size) {
   const w = size, h = size;
-  const pixels = new Uint8Array(w * h * 4); // RGBA, starts transparent
+  const pixels = new Uint8Array(w * h * 4); // RGBA, all transparent
 
   const cx = w / 2, cy = h / 2;
-  const outerR = w * 0.47;
-  const borderW = w * 0.065;
-  const innerR = outerR - borderW;
+  const outerR  = w * 0.47;
+  const borderW = outerR * 0.10;  // 10% of outer radius for visible ring
+  const innerR  = outerR - borderW;
 
-  // Fill circle: purple inside, orange border
+  // ── 1. Circle: gradient purple background + orange ring ──────────
   for (let y = 0; y < h; y++) {
     for (let x = 0; x < w; x++) {
       const dist = Math.hypot(x - cx, y - cy);
-      const i = (y * w + x) * 4;
-      if (dist <= outerR) {
-        if (dist >= innerR) {
-          // Orange border #EF9F27
-          pixels[i] = 239; pixels[i+1] = 159; pixels[i+2] = 39; pixels[i+3] = 255;
-        } else {
-          // Purple fill #5349B7
-          pixels[i] = 83; pixels[i+1] = 73; pixels[i+2] = 183; pixels[i+3] = 255;
-        }
-      }
+      const idx  = (y * w + x) * 4;
+
       // Anti-alias outer edge
-      if (dist > outerR - 1 && dist <= outerR + 1) {
-        const blend = Math.max(0, Math.min(1, outerR + 0.5 - dist));
-        pixels[i+3] = Math.round(blend * 255);
-        if (dist < innerR) { pixels[i] = 83; pixels[i+1] = 73; pixels[i+2] = 183; }
-        else { pixels[i] = 239; pixels[i+1] = 159; pixels[i+2] = 39; }
+      const outerAlpha = clamp((outerR + 0.8 - dist) / 1.6, 0, 1);
+      if (outerAlpha <= 0) continue;
+
+      const a = Math.round(outerAlpha * 255);
+
+      if (dist >= innerR) {
+        // Orange border ring #EF9F27
+        blend(pixels, idx, 239, 159, 39, a);
+      } else {
+        // Purple gradient: #5349B7 (83,73,183) top → #3C3489 (60,52,137) bottom
+        // Anti-alias inner→outer transition at border
+        const t  = y / h;
+        const gr = Math.round(lerp(83, 60, t));
+        const gg = Math.round(lerp(73, 52, t));
+        const gb = Math.round(lerp(183, 137, t));
+        blend(pixels, idx, gr, gg, gb, a);
       }
     }
   }
 
-  // Draw W letter in white
-  // W occupies roughly 55% of inner radius width, centered
-  const ww = innerR * 1.0;  // total W width
-  const wh = innerR * 0.85; // total W height
-  const wt = w * 0.055;      // stroke thickness
-  const wx = cx - ww / 2;   // left edge
-  const wy = cy - wh / 2 - wh * 0.05; // top edge (slightly above center)
+  // ── 2. Lightning bolt polygon ──────────────────────────────────────
+  // Bounding box of the bolt: ~60% of innerR wide, 82% tall, centered
+  // Slightly tilted right: top is shifted right, bottom to the left
+  const bw = innerR * 0.64;
+  const bh = innerR * 0.82;
 
-  // W = 4 diagonal lines: down-right, up-right, down-right, up-right
-  // Points (normalized): TL, BL-inner, CM, BR-inner, TR
-  const pts = [
-    [wx,            wy],          // 0: top-left
-    [wx + ww*0.22,  wy + wh],     // 1: bottom-left
-    [wx + ww*0.5,   wy + wh*0.5], // 2: center-mid
-    [wx + ww*0.78,  wy + wh],     // 3: bottom-right
-    [wx + ww,       wy],          // 4: top-right
+  // Bolt vertices (fractions of half-size, from center):
+  //   Upper blade: top-right → left notch → right indent
+  //   Lower blade: left indent → lower-right → bottom tip
+  //
+  //  ╲  ← top right
+  //   ╲
+  //    ╲__←  notch (wider here = looks like real bolt)
+  //       ╲
+  //        ╲  ← bottom left
+  const raw = [
+    [ 0.28, -1.00],   // A — top tip (shifted right)
+    [-0.46,  0.02],   // B — middle-left (upper half ends)
+    [ 0.08,  0.02],   // C — notch indent (right)
+    [-0.28,  1.00],   // D — bottom tip (shifted left)
+    [ 0.46, -0.02],   // E — middle-right (lower half starts)
+    [-0.08, -0.02],   // F — notch indent (left)
   ];
 
-  drawThickLine(pixels, w, pts[0][0], pts[0][1], pts[1][0], pts[1][1], wt, 255, 255, 255);
-  drawThickLine(pixels, w, pts[1][0], pts[1][1], pts[2][0], pts[2][1], wt, 255, 255, 255);
-  drawThickLine(pixels, w, pts[2][0], pts[2][1], pts[3][0], pts[3][1], wt, 255, 255, 255);
-  drawThickLine(pixels, w, pts[3][0], pts[3][1], pts[4][0], pts[4][1], wt, 255, 255, 255);
+  const bolt = raw.map(([nx, ny]) => [cx + nx * bw, cy + ny * bh]);
 
-  // Build PNG binary
-  const sig = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
+  // Rasterize bolt with 1px anti-alias band
+  const AA_BAND = 1.2;
+  // Bounding box
+  const bxs = bolt.map(p => p[0]), bys = bolt.map(p => p[1]);
+  const minX = Math.max(0, Math.floor(Math.min(...bxs) - AA_BAND));
+  const maxX = Math.min(w-1, Math.ceil (Math.max(...bxs) + AA_BAND));
+  const minY = Math.max(0, Math.floor(Math.min(...bys) - AA_BAND));
+  const maxY = Math.min(h-1, Math.ceil (Math.max(...bys) + AA_BAND));
+
+  for (let y = minY; y <= maxY; y++) {
+    for (let x = minX; x <= maxX; x++) {
+      // Only draw inside the inner circle
+      if (Math.hypot(x - cx, y - cy) > innerR - 0.5) continue;
+      const idx = (y * w + x) * 4;
+      const inside = pointInPoly(x, y, bolt);
+      if (inside) {
+        // Fully inside: white, but smooth border
+        const edgeDist = distToPoly(x, y, bolt);
+        const a = edgeDist < AA_BAND ? Math.round((edgeDist / AA_BAND) * 255) : 255;
+        blend(pixels, idx, 255, 255, 255, a);
+      } else {
+        // Outside but within AA_BAND of edge
+        const edgeDist = distToPoly(x, y, bolt);
+        if (edgeDist < AA_BAND) {
+          const a = Math.round((1 - edgeDist / AA_BAND) * 180); // softer fringe
+          blend(pixels, idx, 255, 255, 255, a);
+        }
+      }
+    }
+  }
+
+  // ── 3. Encode PNG ─────────────────────────────────────────────────
+  const sig  = Buffer.from([137, 80, 78, 71, 13, 10, 26, 10]);
   const ihdr = Buffer.alloc(13);
   ihdr.writeUInt32BE(w, 0); ihdr.writeUInt32BE(h, 4);
-  ihdr.writeUInt8(8, 8); ihdr.writeUInt8(6, 9); // 8-bit RGBA
+  ihdr.writeUInt8(8, 8);    // bit depth
+  ihdr.writeUInt8(6, 9);    // colour type: RGBA
 
   const rows = [];
   for (let y = 0; y < h; y++) {
@@ -120,17 +178,23 @@ function createIcon(size) {
     row[0] = 0; // filter: None
     for (let x = 0; x < w; x++) {
       const si = (y * w + x) * 4;
-      row[1 + x*4] = pixels[si]; row[2 + x*4] = pixels[si+1];
+      row[1 + x*4] = pixels[si];   row[2 + x*4] = pixels[si+1];
       row[3 + x*4] = pixels[si+2]; row[4 + x*4] = pixels[si+3];
     }
     rows.push(row);
   }
 
   const compressed = zlib.deflateSync(Buffer.concat(rows), { level: 6 });
-  return Buffer.concat([sig, chunk('IHDR', ihdr), chunk('IDAT', compressed), chunk('IEND', Buffer.alloc(0))]);
+  return Buffer.concat([
+    sig,
+    pngChunk('IHDR', ihdr),
+    pngChunk('IDAT', compressed),
+    pngChunk('IEND', Buffer.alloc(0)),
+  ]);
 }
 
+// ── Generate ──────────────────────────────────────────────────────────
 fs.writeFileSync('icon-192.png', createIcon(192));
-console.log('✅ icon-192.png created');
+console.log('✅ icon-192.png  (192×192)');
 fs.writeFileSync('icon-512.png', createIcon(512));
-console.log('✅ icon-512.png created');
+console.log('✅ icon-512.png  (512×512)');
