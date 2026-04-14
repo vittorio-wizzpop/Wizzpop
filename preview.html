@@ -49,33 +49,46 @@ body{
 .screen.active{opacity:1;pointer-events:all}
 
 /* ═══════════════════════════════════════ HOME */
-#home{align-items:center;justify-content:space-between;padding:0 28px 52px}
-.home-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px}
-.logo-emoji{font-size:76px;line-height:1}
+#home{align-items:center;justify-content:space-between;padding:0 0 52px;overflow:hidden}
+.home-bg{position:absolute;inset:0;background:url('assets/backgrounds/bg-cta-explorer.jpg') center/cover no-repeat;z-index:0}
+.home-grad{position:absolute;inset:0;background:linear-gradient(180deg,rgba(10,8,20,0) 0%,rgba(10,8,20,0) 28%,rgba(10,8,20,.85) 100%);z-index:1}
+.home-topbar{width:100%;display:flex;justify-content:flex-end;padding:18px 20px 0;position:relative;z-index:5}
+.btn-prof-icon{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);border-radius:20px;padding:8px 14px;font-size:13px;font-weight:700;color:rgba(255,255,255,.9);cursor:pointer;font-family:inherit;transition:transform .12s}
+.btn-prof-icon:hover{transform:scale(1.04)}
+.home-hero{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;gap:10px;position:relative;z-index:5;padding-bottom:28px}
+.logo-emoji{font-size:72px;line-height:1}
 .logo-emoji.pulsing{animation:pulse 2.4s ease-in-out infinite}
 @keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
-.logo-title{font-size:50px;font-weight:900;color:var(--primary);letter-spacing:-1.5px}
-.logo-tagline{font-size:17px;color:var(--t2);letter-spacing:.3px;text-align:center}
-.home-bottom{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px}
+.logo-title{font-size:52px;font-weight:900;color:#fff;letter-spacing:-1.5px;text-shadow:0 2px 24px rgba(0,0,0,.5)}
+.logo-tagline{font-size:16px;color:rgba(255,255,255,.65);letter-spacing:.4px;text-align:center;text-shadow:0 1px 8px rgba(0,0,0,.5)}
+.home-bottom{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;position:relative;z-index:5;padding:0 24px}
 .btn-play{
   width:100%;background:var(--primary);color:#fff;border:none;
   border-radius:18px;padding:20px;font-size:18px;font-weight:700;
-  letter-spacing:.5px;cursor:pointer;font-family:inherit;
-  box-shadow:0 6px 24px rgba(83,73,183,.35);
+  letter-spacing:.3px;cursor:pointer;font-family:inherit;
+  box-shadow:0 6px 28px rgba(83,73,183,.5);
+  position:relative;overflow:hidden;
   transition:transform .14s,box-shadow .14s;
 }
-.btn-play:hover{transform:scale(1.02);box-shadow:0 8px 28px rgba(83,73,183,.45)}
+.btn-play::after{
+  content:'';position:absolute;top:0;left:-100%;width:60%;height:100%;
+  background:linear-gradient(90deg,transparent,rgba(255,255,255,.28),transparent);
+  animation:shimmer 2.6s ease-in-out 1.2s infinite;
+}
+@keyframes shimmer{0%{left:-100%}60%,100%{left:160%}}
+.btn-play:hover{transform:scale(1.02);box-shadow:0 8px 32px rgba(83,73,183,.6)}
 .btn-play:active{transform:scale(.97)}
 .btn-map{
-  width:100%;background:transparent;color:var(--primary);
-  border:2px solid var(--primary);border-radius:18px;
+  width:100%;background:rgba(255,255,255,.1);color:rgba(255,255,255,.88);
+  border:1.5px solid rgba(255,255,255,.22);border-radius:18px;
   padding:14px;font-size:16px;font-weight:700;
   cursor:pointer;font-family:inherit;
   transition:background .2s,transform .1s;
 }
-.btn-map:hover{background:var(--primary-light)}
+.btn-map:hover{background:rgba(255,255,255,.18)}
 .btn-map:active{transform:scale(.97)}
-.home-ver{font-size:12px;color:var(--t3);margin-top:4px}
+.home-sub{font-size:12px;color:rgba(255,255,255,.32);margin-top:2px;letter-spacing:.2px}
+.home-ver{font-size:11px;color:rgba(255,255,255,.18);margin-top:2px}
 
 /* ═══════════════════════════════════════ WORLD MAP */
 #worldmap{
@@ -141,25 +154,24 @@ body{
 .wm-node:not(.locked) .wm-sublabel{color:var(--t1);opacity:.7}
 
 /* ═══════════════════════════════════════ LEVEL SELECT */
-#levels{background:var(--bg)}
+#levels{overflow:hidden}
+.lv-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:0}
+.lv-overlay{position:absolute;inset:0;background:rgba(10,8,20,.38);z-index:1}
 .lv-hero{
-  background:var(--primary);
-  padding:20px 20px 56px;
-  flex-shrink:0;position:relative;overflow:visible;
-  min-height:120px;
+  background:rgba(10,8,20,.62);backdrop-filter:blur(10px);
+  padding:20px 20px 24px;
+  flex-shrink:0;position:relative;z-index:10;overflow:hidden;
+  border-bottom:1px solid rgba(255,255,255,.08);
 }
 .lv-back{
-  background:none;border:none;color:rgba(255,255,255,.7);
+  background:none;border:none;color:rgba(255,255,255,.75);
   font-size:20px;cursor:pointer;align-self:flex-start;padding:0;margin-bottom:8px;display:block;
 }
 .lv-world-name{font-size:24px;font-weight:900;color:#fff}
-.lv-world-desc{font-size:13px;color:rgba(255,255,255,.65);margin-top:4px}
-.lv-wave{
-  position:absolute;bottom:-1px;left:0;width:100%;height:52px;
-  display:block;
-}
+.lv-world-desc{font-size:13px;color:rgba(255,255,255,.6);margin-top:4px}
+.lv-wave{display:none}
 
-.lv-body{flex:1;padding:20px 20px 10px;overflow-y:auto}
+.lv-body{flex:1;padding:20px 20px 10px;overflow-y:auto;position:relative;z-index:5}
 .lv-path{position:relative;width:350px;height:290px;margin:0 auto}
 .lv-path-svg{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
 
@@ -174,30 +186,95 @@ body{
   display:flex;flex-direction:column;
   align-items:center;justify-content:center;
   font-weight:900;font-size:22px;color:#fff;
-  border:4px solid rgba(255,255,255,.35);
+  border:3px solid rgba(255,255,255,.3);
   position:relative;
-  box-shadow:0 6px 18px rgba(0,0,0,.15);
-  transition:transform .15s;
+  box-shadow:0 6px 18px rgba(0,0,0,.4);
+  transition:transform .15s,box-shadow .15s;
 }
 .lv-node:not(.lv-locked):active .lv-bubble{transform:scale(.92)}
+/* Base colors (usate come fallback) */
 .lv-easy  {background:linear-gradient(135deg,#7BC95A,#4E9B2B)}
 .lv-medium{background:linear-gradient(135deg,#FF9F45,#D4690D)}
-.lv-boss  {background:linear-gradient(135deg,#8B7CF6,var(--primary));border-color:#D4AF37;border-width:4px;
+.lv-boss  {background:linear-gradient(135deg,#8B7CF6,var(--primary));border-color:#D4AF37;
             box-shadow:0 6px 18px rgba(83,73,183,.35),inset 0 1px 0 rgba(255,255,255,.2)}
-.lv-lk   {background:linear-gradient(135deg,#D0CDC7,#B0ADA6)}
-.lv-crown{position:absolute;top:-18px;left:50%;transform:translateX(-50%);font-size:18px}
+.lv-lk   {background:linear-gradient(135deg,#3A3835,#2A2825);border-color:rgba(255,255,255,.12);opacity:.7}
+.lv-crown{position:absolute;top:-20px;left:50%;transform:translateX(-50%);font-size:18px}
 .lv-starsm{font-size:8px;margin-top:2px;letter-spacing:1px;line-height:1}
-.lv-label{
-  margin-top:8px;font-size:10px;font-weight:700;
-  color:var(--t2);text-align:center;white-space:nowrap;
+.lv-label{margin-top:8px;font-size:10px;font-weight:700;color:rgba(255,255,255,.7);text-align:center;white-space:nowrap;}
+
+/* ── ERA 1: Origini — stile pietra con bordo ocra ── */
+#levels.era-origini .lv-easy{
+  background:linear-gradient(135deg,#7A6A45,#584D30);
+  border:3px solid #C8A96E;
+  box-shadow:0 5px 18px rgba(0,0,0,.5),inset 0 1px 0 rgba(200,169,110,.25);
+}
+#levels.era-origini .lv-medium{
+  background:linear-gradient(135deg,#6B5832,#4A3E20);
+  border:3px solid #C8A96E;
+  box-shadow:0 5px 18px rgba(0,0,0,.5),inset 0 1px 0 rgba(200,169,110,.18);
+}
+#levels.era-origini .lv-boss{
+  background:linear-gradient(135deg,#3D1A08,#1A0800);
+  border:4px solid #FF4500;
+  box-shadow:0 6px 22px rgba(255,69,0,.45),0 0 0 2px rgba(255,69,0,.18),inset 0 1px 0 rgba(255,100,50,.2);
+}
+/* ── ERA 2: Civiltà Antiche — medaglioni dorati ── */
+#levels.era-civilta .lv-easy{
+  background:linear-gradient(135deg,#8A6D20,#6A4E10);
+  border:3px solid #D4AF37;
+  box-shadow:0 5px 18px rgba(0,0,0,.5),inset 0 1px 0 rgba(212,175,55,.35);
+}
+#levels.era-civilta .lv-medium{
+  background:linear-gradient(135deg,#C4902A,#8C6810);
+  border:3px solid #D4AF37;
+  box-shadow:0 5px 20px rgba(212,175,55,.3),inset 0 1px 0 rgba(255,215,100,.25);
+}
+#levels.era-civilta .lv-boss{
+  background:linear-gradient(135deg,#8C5A00,#4A2E00);
+  border:4px solid #EF9F27;
+  box-shadow:0 6px 22px rgba(239,159,39,.45),0 0 0 2px rgba(239,159,39,.18),inset 0 1px 0 rgba(255,180,60,.2);
 }
 
-.lv-legend{
-  display:flex;gap:14px;justify-content:center;
-  margin-top:24px;flex-wrap:wrap;
-}
-.lv-leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:var(--t2)}
+.lv-legend{display:flex;gap:14px;justify-content:center;margin-top:24px;flex-wrap:wrap;}
+.lv-leg-item{display:flex;align-items:center;gap:5px;font-size:12px;color:rgba(255,255,255,.65)}
 .lv-leg-dot{width:10px;height:10px;border-radius:50%}
+
+/* ═══════════════════════════════════════ ERA INTRO */
+#era-intro{overflow:hidden;cursor:pointer}
+.ei-bg{position:absolute;inset:0;z-index:0}
+.ei-particles-canvas{position:absolute;inset:0;z-index:1;pointer-events:none}
+.ei-content{
+  position:relative;z-index:10;
+  flex:1;display:flex;flex-direction:column;
+  align-items:center;justify-content:center;
+  padding:40px 38px;gap:20px;text-align:center;
+}
+.ei-label{
+  font-size:10px;font-weight:700;letter-spacing:2.8px;text-transform:uppercase;
+  color:rgba(255,255,255,.32);
+  opacity:0;transform:translateY(8px);transition:opacity .6s ease,transform .6s ease;
+}
+.ei-divider{width:36px;height:1px;background:rgba(255,255,255,.15);opacity:0;transition:opacity .5s ease}
+.ei-text{
+  font-family:Georgia,'Times New Roman',serif;
+  font-size:22px;font-style:italic;color:rgba(255,255,255,.9);
+  line-height:1.75;min-height:80px;
+}
+.ei-btn{
+  background:rgba(255,255,255,.07);color:rgba(255,255,255,.9);
+  border:1.5px solid rgba(255,255,255,.2);border-radius:14px;
+  padding:16px 48px;font-size:17px;font-weight:700;font-family:inherit;
+  cursor:pointer;margin-top:12px;
+  opacity:0;transform:translateY(8px);transition:background .2s,transform .12s,opacity .5s ease;
+}
+.ei-btn.visible{opacity:1;transform:translateY(0)}
+.ei-btn:hover{background:rgba(255,255,255,.14)}
+.ei-btn:active{transform:scale(.96)}
+.ei-footer{
+  position:relative;z-index:10;
+  padding:0 0 44px;display:flex;flex-direction:column;align-items:center;
+}
+.ei-worldname{font-size:11px;color:rgba(255,255,255,.22);letter-spacing:.6px}
 
 /* Bounce available levels */
 @keyframes lvl-bounce{
@@ -265,15 +342,20 @@ body{
 .cin-skip{font-size:11px;color:rgba(255,255,255,.26);letter-spacing:1.2px;text-transform:uppercase}
 
 /* ═══════════════════════════════════════ GAME */
+#game{overflow:hidden}
+.game-bg{position:absolute;inset:0;background-size:cover;background-position:center;background-repeat:no-repeat;z-index:0}
+.game-overlay{position:absolute;inset:0;z-index:1}
 .score-bar{
   display:flex;align-items:center;gap:10px;
   padding:16px 14px 12px;
-  background:var(--surface);border-bottom:1px solid #EEECEA;flex-shrink:0;
+  background:rgba(10,8,20,.7);backdrop-filter:blur(8px);
+  border-bottom:1px solid rgba(255,255,255,.08);flex-shrink:0;
+  position:relative;z-index:10;
 }
 .lives{display:flex;gap:3px}
 .heart{font-size:18px;transition:opacity .3s,transform .3s}
 .heart.lost{opacity:.18;transform:scale(.85)}
-.score-num{flex:1;text-align:right;font-size:20px;font-weight:800;color:var(--t1)}
+.score-num{flex:1;text-align:right;font-size:20px;font-weight:800;color:#fff}
 .combo-badge{
   background:var(--accent);color:#fff;border-radius:8px;
   padding:3px 10px;font-size:14px;font-weight:900;
@@ -285,35 +367,60 @@ body{
   gap:1px;min-width:40px;
 }
 .moves-num{
-  font-size:20px;font-weight:900;color:var(--t1);
+  font-size:20px;font-weight:900;color:#fff;
   line-height:1;transition:color .25s,transform .2s;
   font-variant-numeric:tabular-nums;
 }
-.moves-lbl{font-size:9px;font-weight:700;color:var(--t3);letter-spacing:.4px;text-transform:uppercase}
+.moves-lbl{font-size:9px;font-weight:700;color:rgba(255,255,255,.4);letter-spacing:.4px;text-transform:uppercase}
 .moves-num.urgent{color:var(--err);animation:mv-pulse .65s ease-in-out infinite}
 @keyframes mv-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.22)}}
-.legend{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0}
+.legend{display:flex;gap:6px;padding:8px 14px;overflow-x:auto;scrollbar-width:none;flex-shrink:0;position:relative;z-index:5}
 .legend::-webkit-scrollbar{display:none}
 .leg-item{border-radius:20px;padding:4px 10px;font-size:12px;font-weight:600;white-space:nowrap}
-.grid-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:4px 12px}
-.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:100%}
+.grid-wrap{flex:1;display:flex;align-items:center;justify-content:center;padding:4px 12px;position:relative;z-index:5}
+.grid{display:grid;grid-template-columns:repeat(6,1fr);gap:4px;width:100%;position:relative}
+/* ── Celle con immagine tematica ── */
 .cell{
   aspect-ratio:1;border-radius:11px;
   display:flex;align-items:center;justify-content:center;
-  font-size:22px;cursor:pointer;border:2.5px solid transparent;
-  transition:transform .12s,border-color .12s,opacity .28s,box-shadow .12s;
+  cursor:pointer;border:2.5px solid rgba(255,255,255,.2);
+  transition:transform .12s,border-color .15s,opacity .28s,box-shadow .15s;
   user-select:none;-webkit-user-select:none;
+  position:relative;overflow:hidden;
+}
+.cell-img{
+  position:absolute;inset:0;
+  background-size:cover;background-position:center;
+  border-radius:9px;
+  transition:transform .12s;
+}
+.cell-emoji{
+  position:absolute;bottom:2px;right:3px;
+  font-size:10px;line-height:1;z-index:2;
+  filter:drop-shadow(0 1px 2px rgba(0,0,0,.75));
 }
 .cell:hover{transform:scale(1.07)}
+.cell:hover .cell-img{transform:scale(1.05)}
 .cell:active{transform:scale(.94)}
-.cell.sel{border-color:var(--primary);transform:scale(1.08);box-shadow:0 0 0 3px rgba(83,73,183,.2)}
+.cell.sel{transform:scale(1.08);box-shadow:0 0 0 3px rgba(255,255,255,.55),0 4px 16px rgba(0,0,0,.4)}
+.cell.sel .cell-img{transform:scale(1.04)}
 .cell.gone{opacity:0;transform:scale(.75);pointer-events:none}
 .cell.err{border-color:var(--err)!important;animation:shake .4s ease}
 @keyframes shake{0%,100%{transform:translateX(0)}25%{transform:translateX(-5px)}75%{transform:translateX(5px)}}
-.prog-area{padding:6px 20px 22px;flex-shrink:0}
-.prog-label{text-align:center;font-size:13px;color:var(--t2);margin-bottom:7px}
-.prog-track{height:6px;background:#E5E4DF;border-radius:3px;overflow:hidden}
-.prog-fill{height:100%;background:var(--primary);border-radius:3px;transition:width .4s ease}
+/* Particelle match */
+.cell-particle{
+  position:absolute;width:5px;height:5px;border-radius:50%;
+  pointer-events:none;z-index:50;
+  animation:cp-burst .65s ease-out forwards;
+}
+@keyframes cp-burst{
+  0%{transform:translate(0,0) scale(1.2);opacity:1}
+  100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}
+}
+.prog-area{padding:6px 20px 22px;flex-shrink:0;position:relative;z-index:5}
+.prog-label{text-align:center;font-size:13px;color:rgba(255,255,255,.55);margin-bottom:7px}
+.prog-track{height:6px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden}
+.prog-fill{height:100%;background:linear-gradient(90deg,var(--primary),#8B7CF6);border-radius:3px;transition:width .4s ease}
 
 /* ═══════════════════════════════════════ QUESTION MODAL */
 .overlay{
@@ -623,10 +730,13 @@ body{
 
 /* ═══════════════════════════════════════ WELCOME */
 #welcome{
-  background:linear-gradient(170deg,#0E0C1C 0%,#1A1535 60%,#0B0B14 100%);
+  overflow:hidden;
   align-items:center;justify-content:space-between;
   padding:0 32px 52px;
 }
+.wlc-bg{position:absolute;inset:0;background:url('assets/backgrounds/bg-texture-dark.jpg') center/cover no-repeat;z-index:0}
+.wlc-overlay{position:absolute;inset:0;background:rgba(10,8,20,.75);z-index:1}
+.wlc-hero,.wlc-rules,.wlc-bottom{position:relative;z-index:5}
 .wlc-hero{
   flex:1;display:flex;flex-direction:column;
   align-items:center;justify-content:center;gap:14px;
@@ -869,6 +979,8 @@ body{
 
 <!-- ══ WELCOME ═══════════════════════════════════════════════════════════ -->
 <div id="welcome" class="screen">
+  <div class="wlc-bg"></div>
+  <div class="wlc-overlay"></div>
   <div class="wlc-hero">
     <div class="wlc-logo">⚡</div>
     <div class="wlc-title">WizzPop</div>
@@ -902,6 +1014,8 @@ body{
 
 <!-- ══ HOME ══════════════════════════════════════════════════════════════ -->
 <div id="home" class="screen">
+  <div class="home-bg"></div>
+  <div class="home-grad"></div>
   <div class="home-topbar">
     <button class="btn-prof-icon" id="btn-profile">👤 Profilo</button>
   </div>
@@ -911,9 +1025,10 @@ body{
     <div class="logo-tagline" id="logo-tagline">Gioca. Impara. Sorprenditi.</div>
   </div>
   <div class="home-bottom">
-    <button class="btn-play" id="btn-play">▶&nbsp;&nbsp;Gioca ora</button>
+    <button class="btn-play" id="btn-play">Inizia il viaggio →</button>
     <button class="btn-map"  id="btn-map">🗺&nbsp;&nbsp;Mappa del Sapere</button>
-    <div class="home-ver" id="home-ver">Beta v0.1 — Preview</div>
+    <div class="home-sub">Gratis · Nessun download · Funziona dal browser</div>
+    <div class="home-ver" id="home-ver">Beta v0.1</div>
   </div>
 </div>
 
@@ -928,13 +1043,12 @@ body{
 
 <!-- ══ LEVEL SELECT ══════════════════════════════════════════════════════ -->
 <div id="levels" class="screen">
+  <div class="lv-bg" id="lv-bg"></div>
+  <div class="lv-overlay"></div>
   <div class="lv-hero">
     <button class="lv-back" id="lv-back">←</button>
     <div class="lv-world-name" id="lv-world-name">Origini</div>
     <div class="lv-world-desc" id="lv-world-desc">Preistoria, miti, prime civiltà</div>
-    <svg class="lv-wave" viewBox="0 0 390 52" preserveAspectRatio="none" xmlns="http://www.w3.org/2000/svg">
-      <path d="M0,28 C65,58 130,4 195,30 C260,56 325,8 390,28 L390,52 L0,52 Z" fill="#F8F7F2"/>
-    </svg>
   </div>
   <div class="lv-body">
     <div class="lv-path" id="lv-path"></div>
@@ -943,6 +1057,23 @@ body{
       <div class="lv-leg-item"><div class="lv-leg-dot" style="background:linear-gradient(135deg,#FF9F45,#D4690D)"></div>Medio</div>
       <div class="lv-leg-item"><div class="lv-leg-dot" style="background:linear-gradient(135deg,#8B7CF6,var(--primary))"></div>Boss 👑</div>
     </div>
+  </div>
+</div>
+
+<!-- ══ ERA INTRO ══════════════════════════════════════════════════════════ -->
+<div id="era-intro" class="screen">
+  <div class="ei-bg" id="ei-bg"></div>
+  <canvas class="ei-particles-canvas" id="ei-canvas" width="390" height="844"></canvas>
+  <div class="cin-bar cin-bar-top" id="ei-bar-top"></div>
+  <div class="cin-bar cin-bar-bot" id="ei-bar-bot"></div>
+  <div class="ei-content">
+    <div class="ei-label"   id="ei-label"></div>
+    <div class="ei-divider" id="ei-divider"></div>
+    <div class="ei-text"    id="ei-text"></div>
+    <button class="ei-btn"  id="ei-btn">Esplora →</button>
+  </div>
+  <div class="ei-footer">
+    <div class="ei-worldname" id="ei-worldname"></div>
   </div>
 </div>
 
@@ -998,6 +1129,8 @@ body{
 
 <!-- ══ GAME ══════════════════════════════════════════════════════════════ -->
 <div id="game" class="screen">
+  <div class="game-bg" id="game-bg"></div>
+  <div class="game-overlay" id="game-overlay"></div>
   <div class="score-bar">
     <button class="nav-back" id="btn-back">←</button>
     <div class="lives" id="lives"></div>
@@ -1176,6 +1309,46 @@ const CATS = {
   wild:{emoji:'⭐',label:'Cultura Gen.',bg:'#FBEAF0',fg:'#72243E'},
 };
 const CKEYS = Object.keys(CATS);
+
+// Immagini celle per mondo
+const CELL_IMGS={
+  origini:{
+    geo: "assets/cells/cell-era1-geo.png.jpg",
+    sci: "assets/cells/cell-era1-sci.png.jpg",
+    art: "assets/cells/cell-era1-art.png.jpg",
+    hist:"assets/cells/cell-era1-hist.png.jpg",
+    wild:"assets/cells/cell-era1-cult.png.jpg",
+  },
+  civilta:{
+    geo: "assets/cells/cell-era2-geo.png.jpg",
+    sci: "assets/cells/cell-era2-sci.png.jpg",
+    art: "assets/cells/cell-era2-art.png.jpg",
+    hist:"assets/cells/cell-era2-hist.png.jpg",
+    wild:"assets/cells/cell-era2-cult.png.jpg",
+  },
+};
+function getCellImg(wid,cat){
+  const m=CELL_IMGS[wid]||CELL_IMGS.origini;
+  return m[cat]||m.wild;
+}
+
+// Intro cinematica per ogni era
+const ERA_INTROS={
+  origini:{
+    label:'ERA 1 · ORIGINI',
+    text:'Sei alle Origini.\nDove tutto è cominciato.\nPrima delle città, prima della scrittura.',
+    worldname:'Il tuo viaggio inizia qui.',
+    particleColor:'#C8A96E',
+    bgColor:'#080608',
+  },
+  civilta:{
+    label:'ERA 2 · CIVILTÀ ANTICHE',
+    text:'Il Nilo scorre davanti a te.\nLe piramidi si ergono all\'orizzonte.\nLa civiltà ti aspetta.',
+    worldname:'Esplora le grandi civiltà.',
+    particleColor:'#D4AF37',
+    bgColor:'#06080A',
+  },
+};
 
 // Tutte 50 domande (10 per categoria)
 const QUESTIONS=[
@@ -1878,8 +2051,21 @@ function showLevels(wid){
   $('lv-world-name').textContent=world.name;
   $('lv-world-desc').textContent=world.desc;
 
+  // Sfondo e classe world-specifica
+  const lvEl=$('levels');
+  lvEl.className='screen';
+  lvEl.classList.add(wid==='civilta'?'era-civilta':'era-origini');
+  const bgEl=$('lv-bg');
+  if(bgEl) bgEl.style.backgroundImage=wid==='civilta'
+    ?"url('assets/backgrounds/bg-era2-map.jpg')"
+    :"url('assets/backgrounds/bg-era1-map.jpg')";
+
+  // Parametri visivi per connettore e boss per mondo
+  const pathStroke    = wid==='civilta' ? '#D4AF37' : '#C8A96E';
+  const pathDash      = wid==='civilta' ? 'none'    : '12 8';
+  const bossIcon      = wid==='civilta' ? '👑'      : '⚔️';
+
   const p=LV_POS;
-  // SVG path dinamico che connette tutti i nodi
   const n=cfgs.length;
   const pathH=n<=5?290:n<=10?600:800;
   $('lv-path').style.height=pathH+'px';
@@ -1891,8 +2077,9 @@ function showLevels(wid){
 
   $('lv-path').innerHTML=`
   <svg class="lv-path-svg" viewBox="0 0 350 ${pathH}" xmlns="http://www.w3.org/2000/svg">
-    <path d="${pathD}" stroke="#D8D4CD" stroke-width="8"
-      stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+    <path d="${pathD}" stroke="${pathStroke}" stroke-width="6" stroke-opacity=".55"
+      stroke-linecap="round" stroke-linejoin="round" fill="none"
+      ${pathDash!=='none'?`stroke-dasharray="${pathDash}"`:''}/>
   </svg>
   ${cfgs.map(cfg=>{
     const prog=getLvP(wid,cfg.n);
@@ -1902,10 +2089,11 @@ function showLevels(wid){
     const bc=!unlocked?'lv-lk':cfg.type==='boss'?'lv-boss':cfg.type==='medium'?'lv-medium':'lv-easy';
     const nc=!unlocked?'lv-locked':'';
     const starsStr=stars>0?'⭐'.repeat(stars)+'☆'.repeat(3-stars):'☆☆☆';
+    const isBoss=cfg.type==='boss';
     return `
     <div class="lv-node ${nc}" style="left:${x}px;top:${y}px" data-n="${cfg.n}" id="lvnode-${cfg.n}">
-      <div class="lv-bubble ${bc}" id="lvbubble-${cfg.n}">
-        ${cfg.type==='boss'&&unlocked?'<div class="lv-crown">👑</div>':''}
+      <div class="lv-bubble ${bc}" id="lvbubble-${cfg.n}" ${isBoss&&unlocked?'style="width:82px;height:82px"':''}>
+        ${isBoss&&unlocked?`<div class="lv-crown">${bossIcon}</div>`:''}
         ${!unlocked
           ? '<span style="font-size:22px">🔒</span>'
           : `<span style="font-size:22px;font-weight:900">${cfg.n}</span>`}
@@ -2073,9 +2261,11 @@ function rLegend(){
   }).join('');
 }
 function rGrid(){
+  const wid=nav.worldId||'origini';
   $('grid').innerHTML=gs.board.map((cell,i)=>{
     const c=CATS[cell.cat];
-    return`<div class="cell${cell.gone?' gone':''}" style="background:${c.bg}" data-i="${i}">${c.emoji}</div>`;
+    const img=getCellImg(wid,cell.cat);
+    return`<div class="cell${cell.gone?' gone':''}" style="border-color:${c.fg}55" data-i="${i}"><div class="cell-img" style="background-image:url('${img}')"></div><span class="cell-emoji">${c.emoji}</span></div>`;
   }).join('');
   document.querySelectorAll('.cell').forEach(el=>
     el.addEventListener('click',()=>onCell(+el.dataset.i))
@@ -2086,11 +2276,44 @@ function rGrid(){
   }
 }
 
+function spawnCellParticles(elA,elB,color){
+  const grid=$('grid');
+  if(!grid)return;
+  const gr=grid.getBoundingClientRect();
+  [elA,elB].forEach(el=>{
+    if(!el)return;
+    const r=el.getBoundingClientRect();
+    const cx=r.left+r.width/2-gr.left;
+    const cy=r.top+r.height/2-gr.top;
+    for(let i=0;i<8;i++){
+      const p=document.createElement('div');
+      p.className='cell-particle';
+      const ang=(i/8)*Math.PI*2;
+      const dist=18+Math.random()*16;
+      p.style.cssText=`left:${cx}px;top:${cy}px;background:${color};`
+        +`--tx:${Math.cos(ang)*dist}px;--ty:${Math.sin(ang)*dist}px;`
+        +`animation-delay:${Math.random()*.08}s;width:${3+Math.random()*3}px;height:${3+Math.random()*3}px;`;
+      grid.appendChild(p);
+      setTimeout(()=>p.remove(),750);
+    }
+  });
+}
+
 function launchGame(wid,cfg){
   nav.worldId=wid;nav.levelN=cfg.n;
   gs=freshGs(cfg);gs.board=newBoard();
   $('overlay').classList.remove('open');
   const ro=$('raffica-overlay');if(ro)ro.style.display='none';
+  // Sfondo griglia per mondo
+  const bgEl=$('game-bg'),ovEl=$('game-overlay');
+  if(bgEl){
+    bgEl.style.backgroundImage=wid==='civilta'
+      ?"url('assets/backgrounds/bg-era2-grid.jpg')"
+      :"url('assets/backgrounds/bg-era1-grid.jpg')";
+  }
+  if(ovEl) ovEl.style.background=wid==='civilta'
+    ?'rgba(10,8,20,.40)'
+    :'rgba(10,8,20,.45)';
   rLives();rScore();rCombo();rProgress();rMoves();rLegend();rGrid();rRaffBar();
   showScreen('game');
   gtag('event','level_start',{world_id:wid,level_n:cfg.n,level_name:cfg.name||''});
@@ -2276,6 +2499,7 @@ function onCell(i){
     gs.board[gs.sel].gone=true; gs.board[i].gone=true;
     if(elA){elA.classList.remove('sel');elA.classList.add('gone')}
     if(elB)elB.classList.add('gone');
+    spawnCellParticles(elA,elB,CATS[b.cat]?.fg||'#fff');
     gs.sel=null;
     gtag('event','match_made',{category:b.cat,combo:gs.combo,level_n:nav.levelN});
     setTimeout(()=>openModal(b.cat),320);
@@ -2538,12 +2762,123 @@ function showShare(){
 // ════════════════════════════════════════════════════════ NAVIGATION
 
 function goHome(){
-  stopParts();clearTimeout(cinTimeout);
+  stopParts();stopEiParticles();clearTimeout(cinTimeout);
   if(gs)clearInterval(gs.timerH);
   $('overlay').classList.remove('open');
+  const ei=$('era-intro');if(ei)ei.classList.remove('cin-open');
   showScreen('home');homeEntrance();
 }
 function goWorldMap(){renderWorldMap();showScreen('worldmap')}
+
+// ── Era Intro ────────────────────────────────────────────
+let eiParticles=[],eiRaf=null;
+
+function stopEiParticles(){
+  if(eiRaf){cancelAnimationFrame(eiRaf);eiRaf=null;}
+  const cv=$('ei-canvas');if(cv)cv.getContext('2d').clearRect(0,0,390,844);
+}
+function startEiParticles(hex){
+  stopEiParticles();
+  eiParticles=Array.from({length:35},()=>({
+    x:Math.random()*390,y:Math.random()*844,
+    r:.6+Math.random()*2.2,
+    vx:(Math.random()-.5)*.28,vy:-(0.18+Math.random()*.42),
+    a:.05+Math.random()*.24,
+  }));
+  (function tick(){
+    const cv=$('ei-canvas');if(!cv)return;
+    const ctx=cv.getContext('2d');
+    ctx.clearRect(0,0,390,844);
+    eiParticles.forEach(p=>{
+      p.x+=p.vx;p.y+=p.vy;
+      if(p.y<-8){p.y=852;p.x=Math.random()*390;}
+      if(p.x<-8)p.x=398;if(p.x>398)p.x=-8;
+      ctx.beginPath();ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+      ctx.fillStyle=hex+Math.round(p.a*255).toString(16).padStart(2,'0');
+      ctx.fill();
+    });
+    eiRaf=requestAnimationFrame(tick);
+  })();
+}
+
+function showEraIntro(wid){
+  const d=ERA_INTROS[wid]||ERA_INTROS.origini;
+  // Sfondo e particelle
+  $('ei-bg').style.background=d.bgColor;
+  startEiParticles(d.particleColor);
+  // Testi
+  $('ei-label').textContent=d.label;
+  $('ei-worldname').textContent=d.worldname;
+  // Reset elementi
+  const lbl=$('ei-label'),div=$('ei-divider'),btn=$('ei-btn'),txt=$('ei-text');
+  [lbl,div,btn].forEach(el=>{el.style.transition='none';el.style.opacity='0';});
+  lbl.style.transform='translateY(8px)';
+  txt.innerHTML='';txt.style.opacity='1';
+  btn.classList.remove('visible');
+  // Letterbox
+  const ei=$('era-intro');
+  ei.classList.remove('cin-open');void ei.offsetWidth;
+  showScreen('era-intro');
+  // Sequenza animata
+  requestAnimationFrame(()=>requestAnimationFrame(()=>{
+    ei.classList.add('cin-open');
+    setTimeout(()=>{
+      lbl.style.transition='opacity .6s ease,transform .6s ease';
+      lbl.style.opacity='1';lbl.style.transform='translateY(0)';
+    },500);
+    setTimeout(()=>{
+      div.style.transition='opacity .5s ease';div.style.opacity='1';
+    },820);
+    // Typewriter
+    setTimeout(()=>{
+      const lines=d.text.split('\n');
+      const full=lines.join('');
+      const spd=Math.max(20,Math.round(1800/full.length));
+      let li=0,ci=0;
+      txt.innerHTML='';
+      function typeLine(){
+        if(li>=lines.length){
+          setTimeout(()=>{btn.classList.add('visible');},300);
+          return;
+        }
+        const span=document.createElement('span');
+        txt.appendChild(span);
+        const chars=[...lines[li]];
+        function typeChar(){
+          if(ci<chars.length){
+            span.textContent+=chars[ci++];
+            setTimeout(typeChar,spd);
+          } else {
+            li++;ci=0;
+            if(li<lines.length){
+              txt.appendChild(document.createElement('br'));
+              setTimeout(typeLine,120);
+            } else {
+              setTimeout(()=>{btn.classList.add('visible');},300);
+            }
+          }
+        }
+        typeChar();
+      }
+      typeLine();
+    },1100);
+  }));
+  // Bottone Esplora
+  btn.onclick=()=>{
+    stopEiParticles();
+    ei.classList.remove('cin-open');
+    showLevels(wid);
+  };
+  gtag('event','era_intro_viewed',{world_id:wid});
+}
+
+function goToWorld(wid){
+  nav.worldId=wid;
+  // Mostra intro solo al primo accesso (0 livelli completati)
+  if(worldDone(wid)===0) showEraIntro(wid);
+  else showLevels(wid);
+}
+
 function renderEraMap(){
   ['origini','civilta'].forEach(wid=>{
     const el=$(`em-sub-${wid}`);if(!el)return;
@@ -2558,15 +2893,16 @@ function goEraMap(){renderEraMap();showScreen('eramap')}
 
 gs=freshGs({n:1,pairs:10,lives:3,diff:1,type:'easy',name:''});
 
-$('btn-play').addEventListener('click',()=>showLevels('origini'));
+$('btn-play').addEventListener('click',()=>goToWorld('origini'));
 $('btn-map').addEventListener('click',goEraMap);
 $('btn-profile').addEventListener('click',()=>{ renderProfile(); showScreen('profile'); });
 $('prof-back').addEventListener('click',goHome);
 $('wm-back').addEventListener('click',goHome);
 $('lv-back').addEventListener('click',goEraMap);
 $('em-back').addEventListener('click',goHome);
-$('em-node-origini').addEventListener('click',()=>{ nav.worldId='origini'; showLevels('origini'); });
-$('em-node-civilta').addEventListener('click',()=>{ nav.worldId='civilta'; showLevels('civilta'); });
+$('em-node-origini').addEventListener('click',()=>goToWorld('origini'));
+$('em-node-civilta').addEventListener('click',()=>goToWorld('civilta'));
+$('ei-btn').addEventListener('click',()=>{/* gestito in showEraIntro */});
 $('cinematic').addEventListener('click',skipCin);
 $('btn-back').addEventListener('click',()=>showLevels(nav.worldId));
 $('btn-cont').addEventListener('click',closeModal);
