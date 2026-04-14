@@ -930,6 +930,73 @@ body{
 }
 .im-cta:active{transform:scale(.97)}
 
+/* ═══════════════════════════════════════ SPECIAL CELLS */
+/* Catena 🔗 */
+.cell-chain{
+  position:absolute;inset:0;z-index:3;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(180,120,20,.38);
+  border:2px solid rgba(212,175,55,.75);
+  border-radius:9px;pointer-events:none;
+  font-size:17px;text-shadow:0 1px 3px rgba(0,0,0,.8);
+}
+@keyframes chain-break{
+  0%{opacity:1;transform:scale(1)}
+  40%{transform:scale(1.25) rotate(10deg)}
+  100%{opacity:0;transform:scale(.4) rotate(-15deg)}
+}
+.cell-chain.breaking{animation:chain-break .38s ease-out forwards}
+
+/* Ghiaccio 🧊 */
+.cell-ice{
+  position:absolute;inset:0;z-index:3;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(100,200,255,.32);
+  border:2px solid rgba(150,220,255,.6);
+  border-radius:9px;pointer-events:none;
+  font-size:17px;text-shadow:0 1px 3px rgba(0,0,0,.7);
+}
+@keyframes ice-melt{
+  0%{opacity:1;transform:scale(1)}
+  60%{transform:scale(1.15);filter:brightness(1.5)}
+  100%{opacity:0;transform:scale(1.4)}
+}
+.cell-ice.melting{animation:ice-melt .42s ease-out forwards}
+
+/* Cella bloccata (chained) — non selezionabile */
+.cell.chained{cursor:not-allowed}
+.cell.chained:hover{transform:none!important;box-shadow:none!important}
+.cell.chained .cell-img{filter:brightness(.65) saturate(.7)}
+
+/* Jolly ⭐ */
+.cell.joker{
+  animation:joker-pulse 1.8s ease-in-out infinite;
+}
+@keyframes joker-pulse{
+  0%,100%{box-shadow:0 0 0 2px rgba(212,175,55,.55),0 0 8px rgba(212,175,55,.25)}
+  50%{box-shadow:0 0 0 5px rgba(212,175,55,.85),0 0 18px rgba(212,175,55,.5)}
+}
+.cell.joker .cell-emoji{font-size:14px}
+
+/* Bomba 💣 */
+.cell.bomb{border-color:#E24B4A!important;border-width:3px!important}
+.cell-bomb-num{
+  position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);
+  font-size:22px;font-weight:900;color:#fff;z-index:4;line-height:1;
+  text-shadow:0 2px 8px rgba(0,0,0,.95),0 0 12px rgba(226,75,74,.8);
+}
+@keyframes bomb-urgent{
+  0%,100%{transform:translate(-50%,-50%) scale(1)}
+  50%{transform:translate(-50%,-50%) scale(1.18)}
+}
+.cell.bomb.urgent .cell-bomb-num{animation:bomb-urgent .45s ease-in-out infinite}
+@keyframes bomb-explode{
+  0%{transform:scale(1);opacity:1;border-color:#E24B4A!important}
+  35%{transform:scale(1.4);opacity:.9;background:rgba(226,75,74,.4)}
+  100%{transform:scale(.3);opacity:0}
+}
+.cell.bomb-exploding{animation:bomb-explode .5s ease-out forwards!important;pointer-events:none}
+
 /* ═══════════════════════════════════════ WELCOME TOAST */
 #welcome-toast{
   position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-100%);
@@ -1733,40 +1800,40 @@ const WM_POS=[[100,618],[270,482],[108,348],[268,214],[184,88]];
 // Boss e respiro calibrati: pairs ≤ maxMoves per permettere qualche errore.
 const LEVEL_CFGS={
   origini:[
-    // n  pairs  lives  diff  type      name                   maxMoves
-    {n:1,  pairs:5,  lives:3,diff:1,type:'easy',   name:'Primo Passo',        maxMoves:null}, // ∞
-    {n:2,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Curioso',            maxMoves:null}, // ∞
-    {n:3,  pairs:10, lives:3,diff:2,type:'medium',  name:'Pensatore',          maxMoves:25},   // 10 coppie + 15 errori
-    {n:4,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Respiro',            maxMoves:20},   // respiro pre-boss
-    {n:5,  pairs:10, lives:2,diff:2,type:'boss',   name:'Il Boss',            maxMoves:15},   // 10 coppie + 5 err
-    {n:6,  pairs:10, lives:3,diff:1,type:'easy',   name:"L'Esplorazione",     maxMoves:22},   // 10 + 12 err
-    {n:7,  pairs:10, lives:3,diff:2,type:'medium',  name:'Labirinto',          maxMoves:20},   // 10 + 10 err
-    {n:8,  pairs:10, lives:3,diff:2,type:'medium',  name:'Tra le Rovine',      maxMoves:22},   // 10 + 12 err
-    {n:9,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Respiro II',         maxMoves:20},   // respiro pre-boss
-    {n:10, pairs:10, lives:2,diff:2,type:'boss',   name:'Boss delle Origini', maxMoves:15},   // 10 coppie + 5 err
-    {n:11, pairs:10, lives:3,diff:2,type:'medium',  name:'Il Risveglio',       maxMoves:20},   // 10 + 10 err
-    {n:12, pairs:10, lives:3,diff:2,type:'medium',  name:'Il Cammino',         maxMoves:20},   // 10 + 10 err
-    {n:13, pairs:12, lives:3,diff:2,type:'medium',  name:'Tra le Stelle',      maxMoves:20},   // 12 + 8 err
-    {n:14, pairs:8,  lives:3,diff:1,type:'easy',   name:'Ultimo Respiro',     maxMoves:20},   // respiro pre-boss
-    {n:15, pairs:10, lives:2,diff:2,type:'boss',   name:'Boss Finale',        maxMoves:12},   // 10 coppie + 2 err — durissimo
+    // n  pairs  lives  diff  type      name                   maxMoves  chains ice  bombs bombTimer jolly
+    {n:1,  pairs:5,  lives:3,diff:1,type:'easy',  name:'Primo Passo',        maxMoves:null, chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:2,  pairs:8,  lives:3,diff:1,type:'easy',  name:'Curioso',            maxMoves:null, chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:3,  pairs:10, lives:3,diff:2,type:'medium', name:'Pensatore',          maxMoves:25,   chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:4,  pairs:8,  lives:3,diff:1,type:'easy',  name:'Respiro',            maxMoves:20,   chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:5,  pairs:10, lives:2,diff:2,type:'boss',  name:'Il Boss',            maxMoves:15,   chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:6,  pairs:10, lives:3,diff:1,type:'easy',  name:"L'Esplorazione",     maxMoves:22,   chains:2,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:7,  pairs:10, lives:3,diff:2,type:'medium', name:'Labirinto',          maxMoves:20,   chains:3,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:8,  pairs:10, lives:3,diff:2,type:'medium', name:'Tra le Rovine',      maxMoves:22,   chains:4,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:9,  pairs:8,  lives:3,diff:1,type:'easy',  name:'Respiro II',         maxMoves:20,   chains:3,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:10, pairs:10, lives:2,diff:2,type:'boss',  name:'Boss delle Origini', maxMoves:15,   chains:6,ice:0,bombs:0,bombTimer:0,jolly:true},
+    {n:11, pairs:10, lives:3,diff:2,type:'medium', name:'Il Risveglio',       maxMoves:20,   chains:0,ice:3,bombs:0,bombTimer:0,jolly:false},
+    {n:12, pairs:10, lives:3,diff:2,type:'medium', name:'Il Cammino',         maxMoves:20,   chains:2,ice:3,bombs:0,bombTimer:0,jolly:false},
+    {n:13, pairs:12, lives:3,diff:2,type:'medium', name:'Tra le Stelle',      maxMoves:22,   chains:3,ice:4,bombs:0,bombTimer:0,jolly:false},
+    {n:14, pairs:8,  lives:3,diff:1,type:'easy',  name:'Ultimo Respiro',     maxMoves:20,   chains:2,ice:2,bombs:0,bombTimer:0,jolly:false},
+    {n:15, pairs:10, lives:2,diff:2,type:'boss',  name:'Boss Finale',        maxMoves:12,   chains:4,ice:3,bombs:1,bombTimer:5,jolly:true},
   ],
   civilta:[
-    // n  pairs  lives  diff  type      name                     maxMoves
-    {n:1,  pairs:5,  lives:3,diff:1,type:'easy',   name:'Le Piramidi',          maxMoves:null}, // ∞
-    {n:2,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Il Nilo',              maxMoves:null}, // ∞
-    {n:3,  pairs:10, lives:3,diff:2,type:'medium',  name:'Cartagine',            maxMoves:25},
-    {n:4,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Pax Romana',           maxMoves:20},   // respiro pre-boss
-    {n:5,  pairs:10, lives:2,diff:2,type:'boss',   name:'Cesare',               maxMoves:15},   // boss
-    {n:6,  pairs:10, lives:3,diff:1,type:'easy',   name:'Babilonia',            maxMoves:22},
-    {n:7,  pairs:10, lives:3,diff:2,type:'medium',  name:"L'Acropoli",           maxMoves:20},
-    {n:8,  pairs:10, lives:3,diff:2,type:'medium',  name:'Le Legioni',           maxMoves:22},
-    {n:9,  pairs:8,  lives:3,diff:1,type:'easy',   name:'Il Faraone',           maxMoves:20},   // respiro pre-boss
-    {n:10, pairs:10, lives:2,diff:2,type:'boss',   name:'Alessandro',           maxMoves:15},   // boss
-    {n:11, pairs:10, lives:3,diff:2,type:'medium',  name:"L'Oriente",            maxMoves:20},
-    {n:12, pairs:10, lives:3,diff:2,type:'medium',  name:'I Fenici',             maxMoves:20},
-    {n:13, pairs:12, lives:3,diff:2,type:'medium',  name:'I Vichinghi',          maxMoves:20},
-    {n:14, pairs:8,  lives:3,diff:1,type:'easy',   name:'Ultimo Respiro',       maxMoves:20},   // respiro pre-boss
-    {n:15, pairs:10, lives:2,diff:2,type:'boss',   name:'Boss Finale',          maxMoves:12},   // boss durissimo
+    // n  pairs  lives  diff  type      name                     maxMoves  chains ice  bombs bombTimer jolly
+    {n:1,  pairs:5,  lives:3,diff:1,type:'easy',  name:'Le Piramidi',          maxMoves:null, chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:2,  pairs:8,  lives:3,diff:1,type:'easy',  name:'Il Nilo',              maxMoves:null, chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:3,  pairs:10, lives:3,diff:2,type:'medium', name:'Cartagine',            maxMoves:25,   chains:2,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:4,  pairs:8,  lives:3,diff:1,type:'easy',  name:'Pax Romana',           maxMoves:20,   chains:2,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:5,  pairs:10, lives:2,diff:2,type:'boss',  name:'Cesare',               maxMoves:15,   chains:3,ice:0,bombs:0,bombTimer:0,jolly:true},
+    {n:6,  pairs:10, lives:3,diff:1,type:'easy',  name:'Babilonia',            maxMoves:22,   chains:3,ice:2,bombs:0,bombTimer:0,jolly:false},
+    {n:7,  pairs:10, lives:3,diff:2,type:'medium', name:"L'Acropoli",           maxMoves:20,   chains:4,ice:3,bombs:0,bombTimer:0,jolly:false},
+    {n:8,  pairs:10, lives:3,diff:2,type:'medium', name:'Le Legioni',           maxMoves:22,   chains:5,ice:3,bombs:0,bombTimer:0,jolly:false},
+    {n:9,  pairs:8,  lives:3,diff:1,type:'easy',  name:'Il Faraone',           maxMoves:20,   chains:2,ice:2,bombs:0,bombTimer:0,jolly:false},
+    {n:10, pairs:10, lives:2,diff:2,type:'boss',  name:'Alessandro',           maxMoves:15,   chains:6,ice:4,bombs:0,bombTimer:0,jolly:true},
+    {n:11, pairs:10, lives:3,diff:2,type:'medium', name:"L'Oriente",            maxMoves:20,   chains:4,ice:4,bombs:1,bombTimer:6,jolly:false},
+    {n:12, pairs:10, lives:3,diff:2,type:'medium', name:'I Fenici',             maxMoves:20,   chains:5,ice:4,bombs:1,bombTimer:5,jolly:false},
+    {n:13, pairs:12, lives:3,diff:2,type:'medium', name:'I Vichinghi',          maxMoves:22,   chains:5,ice:5,bombs:2,bombTimer:6,jolly:false},
+    {n:14, pairs:8,  lives:3,diff:1,type:'easy',  name:'Ultimo Respiro',       maxMoves:20,   chains:3,ice:2,bombs:1,bombTimer:7,jolly:false},
+    {n:15, pairs:10, lives:2,diff:2,type:'boss',  name:'Boss Finale',          maxMoves:12,   chains:6,ice:5,bombs:2,bombTimer:4,jolly:true},
   ],
 };
 
@@ -2090,6 +2157,13 @@ function showLevels(wid){
     const nc=!unlocked?'lv-locked':'';
     const starsStr=stars>0?'⭐'.repeat(stars)+'☆'.repeat(3-stars):'☆☆☆';
     const isBoss=cfg.type==='boss';
+    // Indicatori speciali per livelli sbloccati
+    const specials=unlocked?[
+      cfg.chains>0?`🔗`:'',
+      cfg.ice>0?`🧊`:'',
+      cfg.bombs>0?`💣`:'',
+      cfg.jolly?`⭐`:'',
+    ].filter(Boolean).join(''):'';
     return `
     <div class="lv-node ${nc}" style="left:${x}px;top:${y}px" data-n="${cfg.n}" id="lvnode-${cfg.n}">
       <div class="lv-bubble ${bc}" id="lvbubble-${cfg.n}" ${isBoss&&unlocked?'style="width:82px;height:82px"':''}>
@@ -2100,6 +2174,7 @@ function showLevels(wid){
         ${unlocked?`<div class="lv-starsm">${starsStr}</div>`:''}
       </div>
       <div class="lv-label">${cfg.name}</div>
+      ${specials?`<div style="font-size:9px;margin-top:2px;letter-spacing:1px;opacity:.8">${specials}</div>`:''}
     </div>`;
   }).join('')}`;
 
@@ -2134,9 +2209,23 @@ function showLevels(wid){
 
 // ════════════════════════════════════════════════════════ GAME
 
-function mkCell(cat){return{cat,gone:false}}
+function mkCell(cat){return{cat,gone:false,chained:false,iced:false,isJoker:false,bomb:null}}
 function randCat(){return CKEYS[Math.floor(Math.random()*CKEYS.length)]}
-function newBoard(){return Array.from({length:36},()=>mkCell(randCat()))}
+function newBoard(cfg){
+  const board=Array.from({length:36},()=>mkCell(randCat()));
+  if(!cfg)return board;
+  // Mescola posizioni disponibili per piazzare speciali
+  const pos=Array.from({length:36},(_,i)=>i);
+  for(let i=pos.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[pos[i],pos[j]]=[pos[j],pos[i]];}
+  let pi=0;
+  const chains=cfg.chains||0, ice=cfg.ice||0, jolly=cfg.jolly||false;
+  const bombs=cfg.bombs||0, bombTimer=cfg.bombTimer||5;
+  for(let i=0;i<chains;i++)board[pos[pi++]].chained=true;
+  for(let i=0;i<ice;i++)board[pos[pi++]].iced=true;
+  if(jolly)board[pos[pi++]].isJoker=true;
+  for(let i=0;i<bombs;i++){board[pos[pi]].bomb=bombTimer;board[pos[pi]].cat=randCat();pi++;}
+  return board;
+}
 function gravity(board){
   const b=board.map(c=>({...c}));
   for(let col=0;col<6;col++){
@@ -2164,7 +2253,11 @@ function freshGs(cfg){
          // Raffica system
          rafficaCat:null,rafficaCount:0,rafficaLastMatchTime:0,
          rafficaBonus:false,pendingRaffica:null,
-         pendingCat:null,pendingMatchTime:0};
+         pendingCat:null,pendingMatchTime:0,
+         // Special cells
+         chainsLeft:cfg.chains||0,
+         iceLeft:cfg.ice||0,
+         jokerPendingQ:false};
 }
 
 function rLives(){$('lives').innerHTML=[1,2,3].map(i=>`<span class="heart${i>gs.lives?' lost':''}">❤️</span>`).join('')}
@@ -2182,7 +2275,12 @@ function rCombo(){
 }
 function rProgress(){
   $('prog-fill').style.width=Math.min((gs.pairs/gs.cfg.pairs)*100,100)+'%';
-  $('prog-label').textContent=`${gs.pairs}/${gs.cfg.pairs} coppie`;
+  // Obiettivo variabile basato su speciali attivi
+  const pairsTxt=`${gs.pairs}/${gs.cfg.pairs} coppie`;
+  let label=pairsTxt;
+  if(gs.chainsLeft>0) label=`🔗 ${gs.chainsLeft} catene · ${pairsTxt}`;
+  else if(gs.iceLeft>0) label=`🧊 ${gs.iceLeft} ghiacci · ${pairsTxt}`;
+  $('prog-label').textContent=label;
 }
 function rRaffBar(){
   const el=$('raffica-bar'); if(!el)return;
@@ -2264,8 +2362,24 @@ function rGrid(){
   const wid=nav.worldId||'origini';
   $('grid').innerHTML=gs.board.map((cell,i)=>{
     const c=CATS[cell.cat];
-    const img=getCellImg(wid,cell.cat);
-    return`<div class="cell${cell.gone?' gone':''}" style="border-color:${c.fg}55" data-i="${i}"><div class="cell-img" style="background-image:url('${img}')"></div><span class="cell-emoji">${c.emoji}</span></div>`;
+    const img=cell.isJoker?getCellImg(wid,'wild'):getCellImg(wid,cell.cat);
+    // Determina classi extra
+    let cls='cell';
+    if(cell.gone) cls+=' gone';
+    if(cell.chained) cls+=' chained';
+    if(cell.isJoker) cls+=' joker';
+    if(cell.bomb!==null){
+      cls+=' bomb';
+      if(cell.bomb<=2) cls+=' urgent';
+    }
+    // Emoji da mostrare
+    const emoji=cell.isJoker?'⭐':c.emoji;
+    // Overlay speciali
+    let overlays='';
+    if(cell.chained) overlays+='<div class="cell-chain">🔗</div>';
+    if(cell.iced)    overlays+='<div class="cell-ice">🧊</div>';
+    if(cell.bomb!==null) overlays+=`<div class="cell-bomb-num">${cell.bomb}</div>`;
+    return`<div class="${cls}" style="border-color:${c.fg}55" data-i="${i}"><div class="cell-img" style="background-image:url('${img}')"></div><span class="cell-emoji">${emoji}</span>${overlays}</div>`;
   }).join('');
   document.querySelectorAll('.cell').forEach(el=>
     el.addEventListener('click',()=>onCell(+el.dataset.i))
@@ -2299,9 +2413,62 @@ function spawnCellParticles(elA,elB,color){
   });
 }
 
+// ════════════════════════════════════════════════════════ SPECIAL CELL HELPERS
+
+function getAdjacent(idx){
+  const row=Math.floor(idx/6),col=idx%6,adj=[];
+  if(row>0)adj.push((row-1)*6+col);
+  if(row<5)adj.push((row+1)*6+col);
+  if(col>0)adj.push(row*6+col-1);
+  if(col<5)adj.push(row*6+col+1);
+  return adj;
+}
+
+function spawnBreakParticles(el,color){
+  const grid=$('grid');
+  if(!grid||!el)return;
+  const r=el.getBoundingClientRect(),gr=grid.getBoundingClientRect();
+  const cx=r.left+r.width/2-gr.left,cy=r.top+r.height/2-gr.top;
+  for(let i=0;i<6;i++){
+    const p=document.createElement('div');p.className='cell-particle';
+    const ang=(i/6)*Math.PI*2,dist=14+Math.random()*12;
+    p.style.cssText=`left:${cx}px;top:${cy}px;background:${color};`
+      +`--tx:${Math.cos(ang)*dist}px;--ty:${Math.sin(ang)*dist}px;width:4px;height:4px;`;
+    grid.appendChild(p);setTimeout(()=>p.remove(),700);
+  }
+}
+
+function liberateAdjacent(idxA,idxB){
+  const seen=new Set();
+  [...getAdjacent(idxA),...getAdjacent(idxB)].forEach(adjIdx=>{
+    if(seen.has(adjIdx))return;seen.add(adjIdx);
+    const cell=gs.board[adjIdx];
+    if(!cell||cell.gone)return;
+    const el=document.querySelector(`.cell[data-i="${adjIdx}"]`);
+    if(cell.chained){
+      cell.chained=false;
+      gs.chainsLeft=Math.max(0,gs.chainsLeft-1);
+      if(el){
+        const ov=el.querySelector('.cell-chain');
+        if(ov)ov.classList.add('breaking');
+        spawnBreakParticles(el,'#D4AF37');
+      }
+    } else if(cell.iced){
+      cell.iced=false;
+      gs.iceLeft=Math.max(0,gs.iceLeft-1);
+      if(el){
+        const ov=el.querySelector('.cell-ice');
+        if(ov)ov.classList.add('melting');
+        spawnBreakParticles(el,'#64C8FF');
+      }
+    }
+  });
+  rProgress();
+}
+
 function launchGame(wid,cfg){
   nav.worldId=wid;nav.levelN=cfg.n;
-  gs=freshGs(cfg);gs.board=newBoard();
+  gs=freshGs(cfg);gs.board=newBoard(cfg);
   $('overlay').classList.remove('open');
   const ro=$('raffica-overlay');if(ro)ro.style.display='none';
   // Sfondo griglia per mondo
@@ -2337,7 +2504,9 @@ function pickQ(cat, preferEasy){
 }
 
 function openModal(cat){
-  const q=pickQ(cat, gs.rafficaBonus); gs.rafficaBonus=false;
+  const forceEasy=gs.rafficaBonus||gs.jokerPendingQ;
+  gs.rafficaBonus=false; gs.jokerPendingQ=false;
+  const q=pickQ(cat,forceEasy);
   gs.curQ=q;gs.answered=false;
   const c=CATS[cat],badge=$('cat-badge');
   badge.textContent=`${c.emoji}  ${c.label}`;
@@ -2468,6 +2637,13 @@ function onCell(i){
   if($('overlay').classList.contains('open'))return;
   if(gs.board[i].gone||gs.lives<=0)return;
 
+  // Celle bloccate da catena: non selezionabili
+  if(gs.board[i].chained){
+    const el=document.querySelector(`.cell[data-i="${i}"]`);
+    if(el){el.classList.add('err');setTimeout(()=>el.classList.remove('err'),400);}
+    return;
+  }
+
   // Prima selezione: nessuna mossa consumata
   if(gs.sel===null){
     gs.sel=i;
@@ -2482,36 +2658,72 @@ function onCell(i){
   }
 
   // SECONDO TAP su cella diversa = 1 TENTATIVO DI COPPIA = 1 MOSSA
-  if(gs.maxMoves!==null){
-    gs.moves++;
-    rMoves();
+  if(gs.maxMoves!==null){ gs.moves++; rMoves(); }
+
+  // ── Tick bombe: ogni mossa decrementa il countdown ──────────────
+  const explodedIdxs=[];
+  gs.board.forEach((cell,idx)=>{
+    if(cell.bomb!==null&&!cell.gone){
+      cell.bomb--;
+      if(cell.bomb<=0){
+        cell.bomb=null; cell.gone=true;
+        gs.lives=Math.max(0,gs.lives-1);
+        explodedIdxs.push(idx);
+      }
+    }
+  });
+  if(explodedIdxs.length){
+    explodedIdxs.forEach(idx=>{
+      const el=document.querySelector(`.cell[data-i="${idx}"]`);
+      if(el){el.classList.add('bomb-exploding');setTimeout(()=>el.classList.add('gone'),480);}
+    });
+    rLives();
+    if(gs.lives<=0)return setTimeout(()=>{gs.gameOverReason='lives';showResult(false);},700);
+  } else if(gs.board.some(c=>c.bomb!==null&&!c.gone)){
+    // Bombe ancora attive: aggiorna i contatori visibili
+    gs.board.forEach((cell,idx)=>{
+      if(cell.bomb!==null&&!cell.gone){
+        const el=document.querySelector(`.cell[data-i="${idx}"]`);
+        const num=el?.querySelector('.cell-bomb-num');
+        if(num)num.textContent=cell.bomb;
+        if(cell.bomb<=2){el?.classList.add('urgent')}else{el?.classList.remove('urgent')}
+      }
+    });
   }
 
-  const a=gs.board[gs.sel],b=gs.board[i];
-  const elA=document.querySelector(`.cell[data-i="${gs.sel}"]`);
+  const selIdx=gs.sel;
+  const a=gs.board[selIdx],b=gs.board[i];
+  const elA=document.querySelector(`.cell[data-i="${selIdx}"]`);
   const elB=document.querySelector(`.cell[data-i="${i}"]`);
 
-  if(a.cat===b.cat){
-    // Match valido — celle pendenti, attendiamo la risposta alla domanda
-    // (closeModal controllerà la win condition dopo la risposta)
-    gs.pendingA=gs.sel; gs.pendingB=i;
-    gs.pendingCat=b.cat; gs.pendingMatchTime=Date.now();
-    gs.board[gs.sel].gone=true; gs.board[i].gone=true;
-    if(elA){elA.classList.remove('sel');elA.classList.add('gone')}
+  // Joker: match con qualsiasi categoria
+  const isJokerMatch=a.isJoker||b.isJoker;
+  const isValidMatch=(a.cat===b.cat)||isJokerMatch;
+
+  if(isValidMatch){
+    // Categoria per la domanda: quella della cella non-jolly
+    const matchCat=a.isJoker&&!b.isJoker?b.cat:!a.isJoker&&b.isJoker?a.cat:b.cat;
+    if(isJokerMatch) gs.jokerPendingQ=true;
+
+    gs.pendingA=selIdx; gs.pendingB=i;
+    gs.pendingCat=matchCat; gs.pendingMatchTime=Date.now();
+    gs.board[selIdx].gone=true; gs.board[i].gone=true;
+    if(elA){elA.classList.remove('sel');elA.classList.add('gone');}
     if(elB)elB.classList.add('gone');
-    spawnCellParticles(elA,elB,CATS[b.cat]?.fg||'#fff');
+    spawnCellParticles(elA,elB,CATS[matchCat]?.fg||'#fff');
+    // Libera catene/ghiaccio adiacenti
+    liberateAdjacent(selIdx,i);
     gs.sel=null;
-    gtag('event','match_made',{category:b.cat,combo:gs.combo,level_n:nav.levelN});
-    setTimeout(()=>openModal(b.cat),320);
+    gtag('event','match_made',{category:matchCat,combo:gs.combo,joker:isJokerMatch,level_n:nav.levelN});
+    setTimeout(()=>openModal(matchCat),320);
   } else {
-    // Mismatch — vita persa, raffica azzera, nessuna coppia contata
+    // Mismatch — vita persa, raffica azzera
     gs.lives=Math.max(0,gs.lives-1); gs.combo=1; gs.errors++;
     gs.rafficaCount=0; gs.rafficaCat=null;
-    if(elA){elA.classList.remove('sel');elA.classList.add('err');setTimeout(()=>elA.classList.remove('err'),500)}
-    if(elB){elB.classList.add('err');setTimeout(()=>elB.classList.remove('err'),500)}
+    if(elA){elA.classList.remove('sel');elA.classList.add('err');setTimeout(()=>elA.classList.remove('err'),500);}
+    if(elB){elB.classList.add('err');setTimeout(()=>elB.classList.remove('err'),500);}
     gs.sel=null; rLives(); rCombo(); rRaffBar();
     if(gs.lives===0)return setTimeout(()=>{gs.gameOverReason='lives';showResult(false);},600);
-    // Mosse esaurite dopo mismatch → game over (non win — le coppie non sono completate)
     if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves)setTimeout(()=>{gs.gameOverReason='moves';showResult(false);},650);
   }
 }
@@ -2891,7 +3103,7 @@ function goEraMap(){renderEraMap();showScreen('eramap')}
 
 // ════════════════════════════════════════════════════════ BOOT
 
-gs=freshGs({n:1,pairs:10,lives:3,diff:1,type:'easy',name:''});
+gs=freshGs({n:1,pairs:10,lives:3,diff:1,type:'easy',name:'',chains:0,ice:0,bombs:0,bombTimer:0,jolly:false});
 
 $('btn-play').addEventListener('click',()=>goToWorld('origini'));
 $('btn-map').addEventListener('click',goEraMap);
