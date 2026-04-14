@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(//c/Progetti/**)",
+      "Bash(npx create-expo-app@latest WizzPopTemp --template blank-typescript)",
+      "Bash(curl -s \"http://localhost:8081/node_modules/expo-router/entry.bundle?platform=android&dev=true&hot=false&lazy=false&transform.engine=hermes&transform.routerRoot=app\" -o /tmp/bundle_test.js)",
+      "Bash(echo \"Exit: $?\")",
+      "Read(//tmp/**)",
+      "Bash(node -e ':*)",
+      "Bash(node:*)",
+      "Bash(git add:*)",
+      "Bash(git commit:*)",
+      "Bash(git push:*)",
+      "Bash(grep -v \"^[0-9]*:[ ]*$\")"
+    ]
+  }
+}

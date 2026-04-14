@@ -672,6 +672,69 @@ body{
 .btn-wlc:hover{transform:scale(1.02);box-shadow:0 8px 32px rgba(83,73,183,.6)}
 .btn-wlc:active{transform:scale(.97)}
 .wlc-note{font-size:11px;color:rgba(255,255,255,.2);letter-spacing:.3px}
+.wlc-journey{font-size:14px;color:rgba(255,255,255,.6);font-style:italic;text-align:center;padding-top:4px}
+.wlc-beta-disclaimer{
+  font-size:12px;color:rgba(255,255,255,.5);line-height:1.6;
+  text-align:center;border-top:1px solid rgba(255,255,255,.1);
+  padding-top:12px;margin-top:2px;
+}
+
+/* ═══════════════════════════════════════ ERA MAP */
+#eramap{overflow:hidden}
+.em-bg{position:absolute;inset:0;background:url('assets/backgrounds/bg-world-map.jpg') center/cover no-repeat}
+.em-overlay{position:absolute;inset:0;background:rgba(10,8,20,.35)}
+.em-hdr{
+  position:relative;z-index:10;
+  display:flex;align-items:center;gap:10px;
+  padding:16px 16px 12px;
+  background:rgba(0,0,0,.25);backdrop-filter:blur(6px);
+  border-bottom:1px solid rgba(255,255,255,.1);flex-shrink:0;
+}
+.em-hdr .nav-back{color:rgba(255,255,255,.8)}
+.em-hdr .nav-title{color:#fff}
+.em-body{position:relative;flex:1;z-index:5}
+.em-node{
+  position:absolute;transform:translate(-50%,-50%);
+  display:flex;flex-direction:column;align-items:center;
+  cursor:pointer;z-index:10;
+}
+.em-circle{
+  width:80px;height:80px;border-radius:50%;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;
+  font-size:28px;position:relative;
+  background:rgba(10,8,20,.65);border:3px solid #C8A96E;
+  box-shadow:0 6px 24px rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.08);
+  transition:transform .15s,box-shadow .15s;
+}
+.em-node-2 .em-circle{border-color:#D4AF37}
+.em-node:hover .em-circle{transform:scale(1.1);box-shadow:0 10px 32px rgba(0,0,0,.6)}
+.em-node:active .em-circle{transform:scale(.95)}
+.em-circle-num{
+  font-size:9px;font-weight:800;letter-spacing:1.2px;text-transform:uppercase;
+  color:rgba(255,255,255,.4);margin-bottom:1px;line-height:1;
+}
+.em-glow{
+  position:absolute;inset:-5px;border-radius:50%;pointer-events:none;
+}
+.em-node-1 .em-glow{animation:em-pulse-ocra 2.2s ease-in-out infinite}
+.em-node-2 .em-glow{animation:em-pulse-gold 2.4s ease-in-out infinite .4s}
+@keyframes em-pulse-ocra{
+  0%,100%{box-shadow:0 0 0 0 rgba(200,169,110,.55)}
+  50%{box-shadow:0 0 0 13px rgba(200,169,110,0)}
+}
+@keyframes em-pulse-gold{
+  0%,100%{box-shadow:0 0 0 0 rgba(212,175,55,.55)}
+  50%{box-shadow:0 0 0 13px rgba(212,175,55,0)}
+}
+.em-label{
+  margin-top:9px;font-size:12px;font-weight:800;color:#fff;
+  text-align:center;white-space:nowrap;letter-spacing:.3px;
+  text-shadow:0 1px 6px rgba(0,0,0,.8);
+}
+.em-sublabel{
+  font-size:10px;color:rgba(255,255,255,.6);margin-top:3px;
+  text-align:center;text-shadow:0 1px 4px rgba(0,0,0,.8);font-weight:600;
+}
 
 /* ═══════════════════════════════════════ MOBILE */
 @media(max-width:430px){
@@ -828,6 +891,8 @@ body{
       <div class="wlc-rule-icon">🔥</div>
       <div class="wlc-rule-text">Abbina 3 celle della stessa categoria di fila per scatenare una <strong>RAFFICA!</strong> ⚡ — punti triplicati!</div>
     </div>
+    <div class="wlc-journey">Il tuo viaggio inizia dalle Origini.</div>
+    <div class="wlc-beta-disclaimer">WizzPop è in beta aperta — stai giocando una versione anticipata del gioco.<br>Ogni tuo feedback conta davvero e plasma quello che diventerà.</div>
   </div>
   <div class="wlc-bottom">
     <button class="btn-wlc" id="btn-welcome">Inizia a giocare →</button>
@@ -877,6 +942,38 @@ body{
       <div class="lv-leg-item"><div class="lv-leg-dot" style="background:linear-gradient(135deg,#7BC95A,#4E9B2B)"></div>Facile</div>
       <div class="lv-leg-item"><div class="lv-leg-dot" style="background:linear-gradient(135deg,#FF9F45,#D4690D)"></div>Medio</div>
       <div class="lv-leg-item"><div class="lv-leg-dot" style="background:linear-gradient(135deg,#8B7CF6,var(--primary))"></div>Boss 👑</div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ ERA MAP ════════════════════════════════════════════════════════════ -->
+<div id="eramap" class="screen">
+  <div class="em-bg"></div>
+  <div class="em-overlay"></div>
+  <div class="em-hdr">
+    <button class="nav-back" id="em-back">←</button>
+    <div class="nav-title">Mappa del Sapere</div>
+  </div>
+  <div class="em-body">
+    <!-- Nodo 1: Origini — basso sinistra -->
+    <div class="em-node em-node-1" id="em-node-origini" style="left:22%;top:70%">
+      <div class="em-circle">
+        <div class="em-glow"></div>
+        <div class="em-circle-num">Era 1</div>
+        🌱
+      </div>
+      <div class="em-label">Origini</div>
+      <div class="em-sublabel" id="em-sub-origini">0/15 livelli</div>
+    </div>
+    <!-- Nodo 2: Civiltà Antiche — centro destra -->
+    <div class="em-node em-node-2" id="em-node-civilta" style="left:72%;top:42%">
+      <div class="em-circle">
+        <div class="em-glow"></div>
+        <div class="em-circle-num">Era 2</div>
+        🏛️
+      </div>
+      <div class="em-label">Civiltà Antiche</div>
+      <div class="em-sublabel" id="em-sub-civilta">0/15 livelli</div>
     </div>
   </div>
 </div>
@@ -2447,17 +2544,29 @@ function goHome(){
   showScreen('home');homeEntrance();
 }
 function goWorldMap(){renderWorldMap();showScreen('worldmap')}
+function renderEraMap(){
+  ['origini','civilta'].forEach(wid=>{
+    const el=$(`em-sub-${wid}`);if(!el)return;
+    const done=worldDone(wid);
+    const total=(LEVEL_CFGS[wid]||[]).length||(WORLDS.find(w=>w.id===wid)?.total||0);
+    el.textContent=done>0?`${done}/${total} livelli completati`:`${total} livelli`;
+  });
+}
+function goEraMap(){renderEraMap();showScreen('eramap')}
 
 // ════════════════════════════════════════════════════════ BOOT
 
 gs=freshGs({n:1,pairs:10,lives:3,diff:1,type:'easy',name:''});
 
 $('btn-play').addEventListener('click',()=>showLevels('origini'));
-$('btn-map').addEventListener('click',goWorldMap);
+$('btn-map').addEventListener('click',goEraMap);
 $('btn-profile').addEventListener('click',()=>{ renderProfile(); showScreen('profile'); });
 $('prof-back').addEventListener('click',goHome);
 $('wm-back').addEventListener('click',goHome);
-$('lv-back').addEventListener('click',goWorldMap);
+$('lv-back').addEventListener('click',goEraMap);
+$('em-back').addEventListener('click',goHome);
+$('em-node-origini').addEventListener('click',()=>{ nav.worldId='origini'; showLevels('origini'); });
+$('em-node-civilta').addEventListener('click',()=>{ nav.worldId='civilta'; showLevels('civilta'); });
 $('cinematic').addEventListener('click',skipCin);
 $('btn-back').addEventListener('click',()=>showLevels(nav.worldId));
 $('btn-cont').addEventListener('click',closeModal);
@@ -2470,7 +2579,7 @@ $('btn-next').addEventListener('click',()=>{
     // Controlla se abbiamo appena sbloccato un nuovo mondo
     const wIdx=WORLDS.findIndex(w=>w.id===nav.worldId);
     if(wIdx>=0&&isWorldUnlocked(wIdx+1)){
-      goWorldMap(); // Va alla mappa per mostrare il mondo sbloccato
+      goEraMap(); // Va alla mappa per mostrare il mondo sbloccato
     } else {
       goHome();
     }
