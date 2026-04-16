@@ -602,7 +602,20 @@ body{
 .btn-pri{background:var(--primary);color:#fff;box-shadow:0 4px 16px rgba(83,73,183,.3)}
 .btn-sec{background:var(--primary-light);color:var(--primary)}
 .btn-ghost{background:transparent;color:var(--t2);border:1.5px solid #E5E4DF}
+.btn-challenge{background:transparent;color:#fff;border:1.5px solid rgba(255,255,255,.35)}
 .btn-hide{display:none}
+
+/* ── Toast "Link copiato" ── */
+#share-toast{
+  position:fixed;bottom:36px;left:50%;transform:translateX(-50%) translateY(12px);
+  background:rgba(0,0,0,.82);color:#fff;
+  border-radius:20px;padding:10px 20px;
+  font-size:14px;font-weight:600;white-space:nowrap;
+  pointer-events:none;opacity:0;
+  transition:opacity .22s ease,transform .22s ease;
+  z-index:9999;
+}
+#share-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
 /* ═══════════════════════════════════════ RAFFICA */
 #raffica-overlay{
@@ -1026,6 +1039,8 @@ body{
 </head>
 <body>
 
+<div id="share-toast" role="status" aria-live="polite">Link copiato! 📋</div>
+
 <!-- ── Install banner (fuori dal phone per stare fisso in basso) ── -->
 <div id="install-banner" role="complementary" aria-label="Installa WizzPop">
   <div class="ib-icon">⚡</div>
@@ -1105,6 +1120,7 @@ body{
   </div>
   <div class="home-bottom">
     <button class="btn-play" id="btn-play">Inizia il viaggio →</button>
+    <button class="btn-map"  id="btn-challenge-home">⚡&nbsp;&nbsp;Sfida un amico</button>
     <button class="btn-map"  id="btn-map">🗺&nbsp;&nbsp;Mappa del Sapere</button>
     <div class="home-sub">Gratis · Nessun download · Funziona dal browser</div>
     <div class="home-ver" id="home-ver">Beta v0.1</div>
@@ -1262,9 +1278,10 @@ body{
     </div>
   </div>
   <div class="res-btns">
-    <button class="btn-f btn-pri"   id="btn-next">Prossimo livello →</button>
-    <button class="btn-f btn-sec"   id="btn-replay">↺&nbsp; Rigioca</button>
-    <button class="btn-f btn-ghost" id="btn-share">📤&nbsp; Condividi risultato</button>
+    <button class="btn-f btn-pri"     id="btn-next">Prossimo livello →</button>
+    <button class="btn-f btn-challenge btn-hide" id="btn-challenge">⚡&nbsp; Sfida un amico</button>
+    <button class="btn-f btn-sec"     id="btn-replay">↺&nbsp; Rigioca</button>
+    <button class="btn-f btn-ghost"   id="btn-share">📤&nbsp; Condividi risultato</button>
     <button class="btn-f btn-ghost" id="btn-to-lvls">← Livelli</button>
   </div>
 </div>
@@ -2043,9 +2060,10 @@ const HOME_ELS=[
   {id:'logo-emoji',  delay:0,   scale:true},
   {id:'logo-title',  delay:120, scale:false},
   {id:'logo-tagline',delay:220, scale:false},
-  {id:'btn-play',    delay:360, scale:false},
-  {id:'btn-map',     delay:440, scale:false},
-  {id:'home-ver',    delay:520, scale:false},
+  {id:'btn-play',           delay:360, scale:false},
+  {id:'btn-challenge-home', delay:440, scale:false},
+  {id:'btn-map',            delay:500, scale:false},
+  {id:'home-ver',           delay:570, scale:false},
 ];
 function homeEntrance(){
   HOME_ELS.forEach(({id,scale})=>{
@@ -2968,15 +2986,17 @@ function showResult(win){
   const nextCfg = cfgs.find(c=>c.n===nav.levelN+1);
   const wIdx = WORLDS.findIndex(w=>w.id===nav.worldId);
   const nextWorldUnlocked = isWin && !nextCfg && isWorldUnlocked(wIdx+1);
-  const btnNext   = $('btn-next');
-  const btnReplay = $('btn-replay');
-  const btnShare  = $('btn-share');
+  const btnNext      = $('btn-next');
+  const btnReplay    = $('btn-replay');
+  const btnShare     = $('btn-share');
+  const btnChallenge = $('btn-challenge');
 
   if(isWin){
     // WIN: prossimo livello (primary), rigioca (secondary), condividi
     btnReplay.className = 'btn-f btn-sec';
     btnReplay.innerHTML = '↺&nbsp; Rigioca';
     btnShare.classList.remove('btn-hide');
+    btnChallenge.classList.remove('btn-hide');
     if(nextCfg){
       btnNext.textContent = `Livello ${nextCfg.n}: ${nextCfg.name} →`;
       btnNext.classList.remove('btn-hide');
@@ -2993,6 +3013,7 @@ function showResult(win){
     btnReplay.className = 'btn-f btn-pri';
     btnReplay.innerHTML = '↺&nbsp; Riprova!';
     btnShare.classList.add('btn-hide');
+    btnChallenge.classList.add('btn-hide');
   }
 
   if(isWin){
@@ -3309,6 +3330,24 @@ $('btn-save-img').addEventListener('click',()=>{
   setTimeout(()=>{ btn.textContent='📷\u00a0 Salva immagine'; btn.style.background=''; },2000);
 });
 $('btn-to-lvls').addEventListener('click',()=>showLevels(nav.worldId));
+
+// ── Sfida un amico ────────────────────────────────────────────────
+function shareChallenge(){
+  const SHARE_URL='https://vittorio-wizzpop.github.io/Wizzpop/preview.html';
+  const SHARE_TEXT='Sto giocando a WizzPop, il quiz culturale che fa saltare il cervello 🧠⚡ Prova anche tu — è gratis dal browser, nessun download!';
+  if(navigator.share){
+    navigator.share({title:'WizzPop',text:SHARE_TEXT,url:SHARE_URL}).catch(()=>{});
+  } else {
+    navigator.clipboard.writeText(SHARE_URL).then(()=>{
+      const t=$('share-toast');
+      t.classList.add('show');
+      setTimeout(()=>t.classList.remove('show'),2000);
+    }).catch(()=>{});
+  }
+  gtag('event','challenge_shared');
+}
+$('btn-challenge').addEventListener('click',shareChallenge);
+$('btn-challenge-home').addEventListener('click',shareChallenge);
 
 homeEntrance();
 
