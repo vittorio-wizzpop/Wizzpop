@@ -540,10 +540,10 @@ body{
 }
 .res-overlay{
   position:absolute;inset:0;
-  background:linear-gradient(160deg,rgba(80,60,200,.72) 0%,rgba(20,10,60,.88) 100%);
+  background:linear-gradient(160deg,rgba(30,20,80,.50) 0%,rgba(10,8,20,.65) 100%);
 }
 .res-overlay.gameover{
-  background:linear-gradient(160deg,rgba(120,20,20,.72) 0%,rgba(20,5,5,.9) 100%);
+  background:rgba(10,8,20,.80);
 }
 .res-top::before{
   content:'';position:absolute;top:-60px;left:50%;transform:translateX(-50%);
@@ -2806,11 +2806,11 @@ function showResult(win){
     msgText     = 'Nessun problema — la prossima andrà meglio!';
   }
 
-  // Sfondo contestuale
-  const bgImg = isWin
-    ? "url('assets/backgrounds/bg-level-passed.jpg')"
-    : "url('assets/backgrounds/bg-game-over.jpg')";
-  $('res-bg').style.backgroundImage = bgImg;
+  // Sfondo contestuale: griglia dell'era corrente (indipendente da win/game over)
+  const gridBg = nav.worldId === 'civilta'
+    ? "url('assets/backgrounds/bg-era2-grid.jpg')"
+    : "url('assets/backgrounds/bg-era1-grid.jpg')";
+  $('res-bg').style.backgroundImage = gridBg;
   if(isWin){ $('res-overlay').classList.remove('gameover'); }
   else     { $('res-overlay').classList.add('gameover');    }
 
@@ -3044,13 +3044,18 @@ function showEraIntro(wid){
   $('ei-label').textContent=d.label;
   $('ei-worldname').textContent=d.worldname;
   // Reset elementi
+  const ei=$('era-intro');
   const lbl=$('ei-label'),div=$('ei-divider'),btn=$('ei-btn'),txt=$('ei-text');
-  [lbl,div,btn].forEach(el=>{el.style.transition='none';el.style.opacity='0';});
+  [lbl,div].forEach(el=>{el.style.transition='none';el.style.opacity='0';});
   lbl.style.transform='translateY(8px)';
+  // Pulisce stili inline precedenti sul bottone per lasciare le classi CSS controllare opacity
+  btn.style.transition='none';
+  btn.style.opacity='';
+  btn.style.transform='';
   txt.innerHTML='';txt.style.opacity='1';
   btn.classList.remove('visible');
+  ei.onclick=null;
   // Letterbox
-  const ei=$('era-intro');
   ei.classList.remove('cin-open');void ei.offsetWidth;
   showScreen('era-intro');
   // Sequenza animata
@@ -3072,7 +3077,7 @@ function showEraIntro(wid){
       txt.innerHTML='';
       function typeLine(){
         if(li>=lines.length){
-          setTimeout(()=>{btn.classList.add('visible');},300);
+          setTimeout(()=>{btn.style.transition='';btn.style.opacity='';btn.classList.add('visible');ei.onclick=()=>{ei.onclick=null;btn.onclick&&btn.onclick();};},300);
           return;
         }
         const span=document.createElement('span');
@@ -3088,7 +3093,7 @@ function showEraIntro(wid){
               txt.appendChild(document.createElement('br'));
               setTimeout(typeLine,120);
             } else {
-              setTimeout(()=>{btn.classList.add('visible');},300);
+              setTimeout(()=>{btn.style.transition='';btn.style.opacity='';btn.classList.add('visible');ei.onclick=()=>{ei.onclick=null;btn.onclick&&btn.onclick();};},300);
             }
           }
         }
@@ -3099,6 +3104,7 @@ function showEraIntro(wid){
   }));
   // Bottone Esplora
   btn.onclick=()=>{
+    ei.onclick=null;
     stopEiParticles();
     ei.classList.remove('cin-open');
     showLevels(wid);
