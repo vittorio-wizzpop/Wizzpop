@@ -617,6 +617,38 @@ body{
 }
 #share-toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
 
+/* ═══════════════════════════════════════ FEEDBACK SCREEN */
+#feedback{overflow-y:auto;transition:opacity .6s ease}
+.fb-bg{position:absolute;inset:0;background:url('assets/backgrounds/bg-era2-grid.jpg') center/cover no-repeat;z-index:0}
+.fb-overlay{position:absolute;inset:0;background:rgba(10,8,20,.85);z-index:1}
+.fb-body{position:relative;z-index:2;padding:32px 24px 40px;display:flex;flex-direction:column;align-items:center;gap:18px}
+.fb-trophy{font-size:64px;line-height:1;animation:fbBounce .5s cubic-bezier(.36,.07,.19,.97) both}
+@keyframes fbBounce{
+  0%{transform:scale(0);opacity:0}
+  60%{transform:scale(1.2);opacity:1}
+  100%{transform:scale(1);opacity:1}
+}
+.fb-title{font-size:22px;font-weight:800;color:#fff;text-align:center;line-height:1.25}
+.fb-sub{font-size:14px;color:rgba(255,255,255,.72);text-align:center;line-height:1.5}
+.fb-fields{width:100%;display:flex;flex-direction:column;gap:14px}
+.fb-field label{display:block;font-size:13px;font-weight:700;color:rgba(255,255,255,.85);margin-bottom:6px}
+.fb-field textarea{
+  width:100%;box-sizing:border-box;
+  background:rgba(255,255,255,.08);
+  border:1px solid rgba(255,255,255,.2);
+  border-radius:10px;
+  color:#fff;
+  padding:10px 14px;
+  font-size:14px;
+  font-family:inherit;
+  resize:none;
+  outline:none;
+  rows:3;
+}
+.fb-field textarea::placeholder{color:rgba(255,255,255,.35)}
+.fb-field textarea:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.12)}
+.fb-btns{width:100%;display:flex;flex-direction:column;gap:10px}
+
 /* ═══════════════════════════════════════ RAFFICA */
 #raffica-overlay{
   position:absolute;inset:0;
@@ -1283,6 +1315,31 @@ body{
     <button class="btn-f btn-sec"     id="btn-replay">↺&nbsp; Rigioca</button>
     <button class="btn-f btn-ghost"   id="btn-share">📤&nbsp; Condividi risultato</button>
     <button class="btn-f btn-ghost" id="btn-to-lvls">← Livelli</button>
+  </div>
+</div>
+
+<!-- ══ FEEDBACK (post livello 30) ════════════════════════════════════════ -->
+<div id="feedback" class="screen">
+  <div class="fb-bg"></div>
+  <div class="fb-overlay"></div>
+  <div class="fb-body">
+    <div class="fb-trophy">🏆</div>
+    <div class="fb-title">Hai completato la beta di WizzPop!</div>
+    <div class="fb-sub">Sei tra i primi esploratori ad arrivare fin qui.<br>Il tuo feedback è oro per noi — ci vogliono 30 secondi.</div>
+    <div class="fb-fields">
+      <div class="fb-field">
+        <label>Cosa ti è piaciuto di più? ✨</label>
+        <textarea id="fb-liked" rows="3" placeholder="La meccanica del gioco, le domande, il design..."></textarea>
+      </div>
+      <div class="fb-field">
+        <label>Cosa miglioreresti? 🛠️</label>
+        <textarea id="fb-improve" rows="3" placeholder="Difficoltà, interfaccia, contenuti..."></textarea>
+      </div>
+    </div>
+    <div class="fb-btns">
+      <button class="btn-f btn-pri" id="btn-fb-send">Invia feedback ⚡</button>
+      <button class="btn-f btn-ghost" id="btn-fb-reset">Ricomincia dall'inizio</button>
+    </div>
   </div>
 </div>
 
@@ -2991,13 +3048,21 @@ function showResult(win){
   const btnShare     = $('btn-share');
   const btnChallenge = $('btn-challenge');
 
+  // Controlla se è il livello 30 (fine beta)
+  const isBetaEnd = isWin && nav.levelN === 30;
+
   if(isWin){
     // WIN: prossimo livello (primary), rigioca (secondary), condividi
     btnReplay.className = 'btn-f btn-sec';
     btnReplay.innerHTML = '↺&nbsp; Rigioca';
     btnShare.classList.remove('btn-hide');
     btnChallenge.classList.remove('btn-hide');
-    if(nextCfg){
+    btnNext.dataset.betaEnd = '';
+    if(isBetaEnd){
+      btnNext.textContent = '🏆 Lascia il tuo feedback →';
+      btnNext.classList.remove('btn-hide');
+      btnNext.dataset.betaEnd = '1';
+    } else if(nextCfg){
       btnNext.textContent = `Livello ${nextCfg.n}: ${nextCfg.name} →`;
       btnNext.classList.remove('btn-hide');
     } else if(nextWorldUnlocked){
@@ -3302,6 +3367,9 @@ $('cinematic').addEventListener('click',skipCin);
 $('btn-back').addEventListener('click',()=>showLevels(nav.worldId));
 $('btn-cont').addEventListener('click',closeModal);
 $('btn-next').addEventListener('click',()=>{
+  // Fine beta: livello 30 completato → schermata feedback
+  if($('btn-next').dataset.betaEnd==='1'){ showFeedback(); return; }
+
   const cfgs=LEVEL_CFGS[nav.worldId]||[];
   const next=cfgs.find(c=>c.n===nav.levelN+1);
   if(next){
@@ -3330,6 +3398,37 @@ $('btn-save-img').addEventListener('click',()=>{
   setTimeout(()=>{ btn.textContent='📷\u00a0 Salva immagine'; btn.style.background=''; },2000);
 });
 $('btn-to-lvls').addEventListener('click',()=>showLevels(nav.worldId));
+
+// ── Feedback post-livello 30 ──────────────────────────────────────
+function showFeedback(){
+  showScreen('feedback');
+  gtag('event','feedback_screen_shown');
+}
+
+function sendFeedback(){
+  const liked   = ($('fb-liked').value||'').trim();
+  const improve = ($('fb-improve').value||'').trim();
+  const body    = `Cosa ti è piaciuto di più:\n${liked||'(non compilato)'}\n\nCosa miglioreresti:\n${improve||'(non compilato)'}`;
+  const mailto  = `mailto:wizzpop.feedback@gmail.com?subject=${encodeURIComponent('WizzPop Beta Feedback')}&body=${encodeURIComponent(body)}`;
+  window.location.href = mailto;
+  const t=$('share-toast');
+  t.textContent='Grazie! 🙏';
+  t.classList.add('show');
+  setTimeout(()=>{t.classList.remove('show');t.textContent='Link copiato! 📋';},3000);
+  gtag('event','feedback_sent');
+}
+
+function resetProgress(){
+  if(!confirm('Vuoi davvero ricominciare dall\'inizio? Tutti i progressi verranno cancellati.')) return;
+  localStorage.removeItem('wz2');
+  localStorage.removeItem('wz-prof');
+  showScreen('home');
+  homeEntrance();
+  gtag('event','progress_reset');
+}
+
+$('btn-fb-send').addEventListener('click',sendFeedback);
+$('btn-fb-reset').addEventListener('click',resetProgress);
 
 // ── Sfida un amico ────────────────────────────────────────────────
 function shareChallenge(){
