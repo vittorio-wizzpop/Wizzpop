@@ -635,24 +635,14 @@ body{
 }
 .fb-title{font-size:22px;font-weight:800;color:#fff;text-align:center;line-height:1.25}
 .fb-sub{font-size:14px;color:rgba(255,255,255,.72);text-align:center;line-height:1.5}
-.fb-fields{width:100%;display:flex;flex-direction:column;gap:14px}
-.fb-field label{display:block;font-size:13px;font-weight:700;color:rgba(255,255,255,.85);margin-bottom:6px}
-.fb-field textarea{
-  width:100%;box-sizing:border-box;
-  background:rgba(255,255,255,.08);
-  border:1px solid rgba(255,255,255,.2);
-  border-radius:10px;
-  color:#fff;
-  padding:10px 14px;
-  font-size:14px;
-  font-family:inherit;
-  resize:none;
-  outline:none;
-  rows:3;
-}
-.fb-field textarea::placeholder{color:rgba(255,255,255,.35)}
-.fb-field textarea:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.12)}
 .fb-btns{width:100%;display:flex;flex-direction:column;gap:10px}
+.btn-fb-form{
+  background:#EF9F27;color:#1A1A18;border:none;
+  border-radius:12px;padding:16px 24px;
+  font-size:16px;font-weight:700;font-family:inherit;
+  cursor:pointer;transition:transform .12s,opacity .12s;
+}
+.btn-fb-form:active{transform:scale(.97);opacity:.9}
 
 /* ═══════════════════════════════════════ CATEGORY GOALS */
 #cat-goals-area{
@@ -1353,19 +1343,9 @@ body{
   <div class="fb-body">
     <div class="fb-trophy">🏆</div>
     <div class="fb-title">Hai completato la beta di WizzPop!</div>
-    <div class="fb-sub">Sei tra i primi esploratori ad arrivare fin qui.<br>Il tuo feedback è oro per noi — ci vogliono 30 secondi.</div>
-    <div class="fb-fields">
-      <div class="fb-field">
-        <label>Cosa ti è piaciuto di più? ✨</label>
-        <textarea id="fb-liked" rows="3" placeholder="La meccanica del gioco, le domande, il design..."></textarea>
-      </div>
-      <div class="fb-field">
-        <label>Cosa miglioreresti? 🛠️</label>
-        <textarea id="fb-improve" rows="3" placeholder="Difficoltà, interfaccia, contenuti..."></textarea>
-      </div>
-    </div>
+    <div class="fb-sub">Sei arrivato fin qui, quindi o sei molto bravo o sei molto curioso. In entrambi i casi vogliamo sapere cosa pensi 🧠⚡</div>
     <div class="fb-btns">
-      <button class="btn-f btn-pri" id="btn-fb-send">Invia feedback ⚡</button>
+      <button class="btn-f btn-fb-form" id="btn-fb-send">Lascia il tuo feedback ⚡</button>
       <button class="btn-f btn-ghost" id="btn-fb-reset">Ricomincia dall'inizio</button>
     </div>
   </div>
@@ -3639,15 +3619,7 @@ function showFeedback(){
 }
 
 function sendFeedback(){
-  const liked   = ($('fb-liked').value||'').trim();
-  const improve = ($('fb-improve').value||'').trim();
-  const body    = `Cosa ti è piaciuto di più:\n${liked||'(non compilato)'}\n\nCosa miglioreresti:\n${improve||'(non compilato)'}`;
-  const mailto  = `mailto:vittocaprioglio@gmail.com?subject=${encodeURIComponent('WizzPop Beta Feedback')}&body=${encodeURIComponent(body)}`;
-  window.location.href = mailto;
-  const t=$('share-toast');
-  t.textContent='Grazie! 🙏';
-  t.classList.add('show');
-  setTimeout(()=>{t.classList.remove('show');t.textContent='Link copiato! 📋';},3000);
+  window.open('https://docs.google.com/forms/d/e/1FAIpQLSdPg7R1bqcAW8aLQPJKym8YCFqgIvd7k-TV1osNCWHskd7lfA/viewform','_blank');
   gtag('event','feedback_sent');
 }
 
