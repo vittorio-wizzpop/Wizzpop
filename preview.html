@@ -932,32 +932,28 @@ body{
 #install-banner{
   position:fixed;bottom:0;left:50%;transform:translateX(-50%) translateY(100%);
   width:390px;max-width:100vw;
-  background:#1A1A18;border-top:2px solid var(--primary);
-  border-radius:18px 18px 0 0;
-  padding:14px 16px 28px;
-  display:flex;align-items:center;gap:12px;
+  background:rgba(10,8,20,.95);border-top:2px solid #EF9F27;
+  padding:12px 14px 26px;
+  display:flex;align-items:center;gap:10px;
   z-index:9999;
   transition:transform .4s cubic-bezier(.32,.72,0,1);
-  box-shadow:0 -8px 32px rgba(0,0,0,.5);
+  box-shadow:0 -8px 32px rgba(0,0,0,.6);
 }
 #install-banner.show{transform:translateX(-50%) translateY(0)}
-.ib-icon{font-size:28px;flex-shrink:0}
-.ib-text{flex:1;display:flex;flex-direction:column;gap:2px}
-.ib-title{font-size:14px;font-weight:800;color:#fff;line-height:1.3}
-.ib-sub{font-size:12px;color:rgba(255,255,255,.5);line-height:1.4}
+.ib-text{flex:1;font-size:13px;font-weight:700;color:#fff;line-height:1.35}
 .ib-btn{
-  background:var(--primary);color:#fff;border:none;
-  border-radius:10px;padding:9px 16px;font-size:13px;font-weight:700;
+  background:#EF9F27;color:#1A1A18;border:none;
+  border-radius:10px;padding:9px 16px;font-size:13px;font-weight:800;
   cursor:pointer;font-family:inherit;white-space:nowrap;flex-shrink:0;
-  transition:transform .12s;
+  transition:transform .12s,opacity .12s;
 }
 .ib-btn:active{transform:scale(.95)}
 .ib-close{
-  background:none;border:none;color:rgba(255,255,255,.35);
-  font-size:20px;cursor:pointer;flex-shrink:0;line-height:1;padding:4px;
-  transition:color .15s;
+  background:none;border:none;color:rgba(255,255,255,.4);
+  font-size:22px;cursor:pointer;flex-shrink:0;line-height:1;
+  padding:2px 4px;transition:color .15s;order:-1;
 }
-.ib-close:hover{color:rgba(255,255,255,.7)}
+.ib-close:hover{color:rgba(255,255,255,.75)}
 
 /* ═══════════════════════════════════════ INSTALL MODAL */
 #install-modal{
@@ -1094,13 +1090,9 @@ body{
 
 <!-- ── Install banner (fuori dal phone per stare fisso in basso) ── -->
 <div id="install-banner" role="complementary" aria-label="Installa WizzPop">
-  <div class="ib-icon">⚡</div>
-  <div class="ib-text">
-    <div class="ib-title">Aggiungi WizzPop alla home ⚡</div>
-    <div class="ib-sub">Ritrova il gioco in un tap — come un'app vera</div>
-  </div>
-  <button class="ib-btn" id="ib-install-btn">Installa</button>
   <button class="ib-close" id="ib-close-btn" aria-label="Chiudi">×</button>
+  <div class="ib-text" id="ib-text">⚡ Aggiungi WizzPop alla home</div>
+  <button class="ib-btn" id="ib-install-btn">Installa</button>
 </div>
 
 <!-- ── Install instructions modal ── -->
@@ -2935,6 +2927,7 @@ function launchGame(wid,cfg){
   rLives();rScore();rCombo();rProgress();rMoves();rLegend();rGrid();rRaffBar();
   showScreen('game');
   gtag('event','level_start',{world_id:wid,level_n:cfg.n,level_name:cfg.name||''});
+  if(typeof pwaOnGameStart==='function')pwaOnGameStart();
 }
 
 // ════════════════════════════════════════════════════════ QUESTION MODAL
@@ -3209,6 +3202,7 @@ function spawnConfetti(){
 function showResult(win){
   clearInterval(gs.timerH);
   $('overlay').classList.remove('open');
+  if(typeof pwaOnResult==='function')pwaOnResult();
 
   // ── Scenario 1: WIN — tutte le coppie completate ────────────────
   // ── Scenario 2: GAME OVER — mosse o vite esaurite ───────────────
@@ -3710,6 +3704,7 @@ function getOS() {
   if (/android/i.test(ua)) return 'android';
   return 'other';
 }
+const _os = getOS();
 
 // ── Install banner logic ──────────────────────────────────
 const BANNER_KEY = 'wz-install-dismissed';
@@ -3722,14 +3717,20 @@ window.addEventListener('beforeinstallprompt', e => {
 
 function canShowBanner() {
   if (isStandalone) return false;
-  const stored = localStorage.getItem(BANNER_KEY);
-  if (!stored) return true;
-  const diff = Date.now() - parseInt(stored, 10);
-  return diff > 7 * 24 * 60 * 60 * 1000; // 7 giorni
+  if (sessionStorage.getItem(BANNER_KEY)) return false;
+  // Desktop senza deferredPrompt e non iOS: non mostrare
+  if (_os === 'other' && !deferredPrompt) return false;
+  return true;
 }
 
-function showBanner() {
+function showBanner(isIosFallback) {
   if (!canShowBanner()) return;
+  const textEl = document.getElementById('ib-text');
+  if (textEl) {
+    textEl.textContent = isIosFallback
+      ? '↑ Condividi → Aggiungi a schermata Home'
+      : '⚡ Aggiungi WizzPop alla home';
+  }
   const banner = document.getElementById('install-banner');
   if (banner) banner.classList.add('show');
 }
@@ -3737,7 +3738,7 @@ function showBanner() {
 function hideBanner() {
   const banner = document.getElementById('install-banner');
   if (banner) banner.classList.remove('show');
-  localStorage.setItem(BANNER_KEY, Date.now().toString());
+  sessionStorage.setItem(BANNER_KEY, '1');
 }
 
 document.getElementById('ib-close-btn').addEventListener('click', hideBanner);
@@ -3745,11 +3746,9 @@ document.getElementById('ib-close-btn').addEventListener('click', hideBanner);
 document.getElementById('ib-install-btn').addEventListener('click', () => {
   hideBanner();
   if (deferredPrompt) {
-    // Android Chrome: native prompt
     deferredPrompt.prompt();
     deferredPrompt.userChoice.then(() => { deferredPrompt = null; });
   } else {
-    // iOS or other: mostra istruzioni manuali
     showInstallModal();
   }
 });
@@ -3824,20 +3823,34 @@ if (isStandalone) {
   }
 }
 
-// ── Trigger banner: dopo 45 sec OPPURE dopo il primo livello completato ──
-let bannerTimer = canShowBanner() ? setTimeout(showBanner, 45000) : null;
+// ── PWA banner triggers ───────────────────────────────────
+let _pwaGameTimer = null;
+let _pwaIosTimer = null;
+let _pwaResultShown = false;
 
-// Monkey-patch setLvP per intercettare il primo livello completato
-window.__firstLevelDone = false;
-const _origSetLvP = setLvP;
-window.setLvP = function(wid, n, stars, score) {
-  _origSetLvP(wid, n, stars, score);
-  if (!window.__firstLevelDone && stars > 0) {
-    window.__firstLevelDone = true;
-    if (bannerTimer) { clearTimeout(bannerTimer); bannerTimer = null; }
-    setTimeout(showBanner, 2000);
+// Called at the start of each game session (hooked in launchGame)
+function pwaOnGameStart() {
+  if (!canShowBanner()) return;
+  // 30s active-play timer (Android/desktop with deferredPrompt)
+  if (_pwaGameTimer) return;
+  if (deferredPrompt || _os === 'android') {
+    _pwaGameTimer = setTimeout(() => showBanner(false), 30000);
   }
-};
+  // iOS fallback: 45s unconditional
+  if (_os === 'ios' && !_pwaIosTimer) {
+    _pwaIosTimer = setTimeout(() => showBanner(true), 45000);
+  }
+}
+
+// Called when result screen is shown (hooked in showResult)
+function pwaOnResult() {
+  if (_pwaResultShown) return;
+  if (!canShowBanner()) return;
+  _pwaResultShown = true;
+  if (_pwaGameTimer) { clearTimeout(_pwaGameTimer); _pwaGameTimer = null; }
+  // Show after a short delay so result screen renders first
+  setTimeout(() => showBanner(_os === 'ios' && !deferredPrompt), 1500);
+}
 </script>
 </body>
 </html>
