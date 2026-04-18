@@ -654,6 +654,16 @@ body{
 .fb-field textarea:focus{border-color:rgba(255,255,255,.5);background:rgba(255,255,255,.12)}
 .fb-btns{width:100%;display:flex;flex-direction:column;gap:10px}
 
+/* ═══════════════════════════════════════ CATEGORY GOALS */
+#cat-goals-area{display:none;flex-direction:column;gap:5px;padding:5px 16px 4px;width:100%;box-sizing:border-box}
+.cg-row{display:flex;align-items:center;gap:8px;font-size:12px;color:rgba(255,255,255,.85)}
+.cg-label{min-width:96px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;font-size:11px}
+.cg-track{flex:1;height:6px;background:rgba(255,255,255,.15);border-radius:3px;overflow:hidden}
+.cg-fill{height:100%;background:#5349B7;border-radius:3px;transition:width .28s ease}
+.cg-fill.done{background:#639922}
+.cg-count{min-width:26px;text-align:right;font-weight:700;font-size:11px;color:rgba(255,255,255,.7)}
+.cg-count.done{color:#639922}
+
 /* ═══════════════════════════════════════ RAFFICA */
 #raffica-overlay{
   position:absolute;inset:0;
@@ -1280,6 +1290,7 @@ body{
     <div class="prog-label" id="prog-label">0/10 coppie</div>
     <div class="prog-track"><div class="prog-fill" id="prog-fill" style="width:0%"></div></div>
   </div>
+  <div id="cat-goals-area"></div>
   <div id="raffica-overlay">
     <div class="raffica-bg" id="raffica-bg"></div>
     <div class="raffica-text" id="raffica-text"></div>
@@ -2216,32 +2227,32 @@ const LEVEL_CFGS={
     {n:3,  pairs:10, lives:3,diff:2,type:'medium', name:'Pensatore',          maxMoves:25,   chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
     {n:4,  pairs:8,  lives:3,diff:1,type:'easy',  name:'Respiro',            maxMoves:20,   chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
     {n:5,  pairs:10, lives:2,diff:2,type:'boss',  name:'Il Boss',            maxMoves:15,   chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
-    {n:6,  pairs:10, lives:3,diff:1,type:'easy',  name:"L'Esplorazione",     maxMoves:22,   chains:2,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:6,  pairs:10, lives:3,diff:1,type:'easy',  name:"L'Esplorazione",     maxMoves:22,   chains:2,ice:0,bombs:0,bombTimer:0,jolly:false, categoryGoals:[{cat:'geo',count:4}]},
     {n:7,  pairs:10, lives:3,diff:2,type:'medium', name:'Labirinto',          maxMoves:20,   chains:3,ice:0,bombs:0,bombTimer:0,jolly:false},
     {n:8,  pairs:10, lives:3,diff:2,type:'medium', name:'Tra le Rovine',      maxMoves:22,   chains:4,ice:0,bombs:0,bombTimer:0,jolly:false},
     {n:9,  pairs:8,  lives:3,diff:1,type:'easy',  name:'Respiro II',         maxMoves:20,   chains:3,ice:0,bombs:0,bombTimer:0,jolly:false},
     {n:10, pairs:10, lives:2,diff:2,type:'boss',  name:'Boss delle Origini', maxMoves:15,   chains:6,ice:0,bombs:0,bombTimer:0,jolly:true},
-    {n:11, pairs:10, lives:3,diff:2,type:'medium', name:'Il Risveglio',       maxMoves:20,   chains:0,ice:3,bombs:0,bombTimer:0,jolly:false},
+    {n:11, pairs:10, lives:3,diff:2,type:'medium', name:'Il Risveglio',       maxMoves:20,   chains:0,ice:3,bombs:0,bombTimer:0,jolly:false, categoryGoals:[{cat:'sci',count:3}]},
     {n:12, pairs:10, lives:3,diff:2,type:'medium', name:'Il Cammino',         maxMoves:20,   chains:2,ice:3,bombs:0,bombTimer:0,jolly:false},
     {n:13, pairs:12, lives:3,diff:2,type:'medium', name:'Tra le Stelle',      maxMoves:22,   chains:3,ice:4,bombs:0,bombTimer:0,jolly:false},
-    {n:14, pairs:8,  lives:3,diff:1,type:'easy',  name:'Ultimo Respiro',     maxMoves:20,   chains:2,ice:2,bombs:0,bombTimer:0,jolly:false},
+    {n:14, pairs:8,  lives:3,diff:1,type:'easy',  name:'Ultimo Respiro',     maxMoves:20,   chains:2,ice:2,bombs:0,bombTimer:0,jolly:false, categoryGoals:[{cat:'art',count:3}]},
     {n:15, pairs:10, lives:2,diff:2,type:'boss',  name:'Boss Finale',        maxMoves:12,   chains:4,ice:3,bombs:1,bombTimer:5,jolly:true},
   ],
   civilta:[
     // n   pairs  lives  diff  type      name                     maxMoves  chains ice  bombs bombTimer jolly
     {n:16, pairs:5,  lives:3,diff:1,type:'easy',  name:'Le Piramidi',          maxMoves:null, chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
-    {n:17, pairs:8,  lives:3,diff:1,type:'easy',  name:'Il Nilo',              maxMoves:null, chains:0,ice:0,bombs:0,bombTimer:0,jolly:false},
+    {n:17, pairs:8,  lives:3,diff:1,type:'easy',  name:'Il Nilo',              maxMoves:null, chains:0,ice:0,bombs:0,bombTimer:0,jolly:false, categoryGoals:[{cat:'hist',count:3}]},
     {n:18, pairs:10, lives:3,diff:2,type:'medium', name:'Cartagine',            maxMoves:25,   chains:2,ice:0,bombs:0,bombTimer:0,jolly:false},
     {n:19, pairs:8,  lives:3,diff:1,type:'easy',  name:'Pax Romana',           maxMoves:20,   chains:2,ice:0,bombs:0,bombTimer:0,jolly:false},
-    {n:20, pairs:10, lives:2,diff:2,type:'boss',  name:'Cesare',               maxMoves:15,   chains:3,ice:0,bombs:0,bombTimer:0,jolly:true},
+    {n:20, pairs:10, lives:2,diff:2,type:'boss',  name:'Cesare',               maxMoves:15,   chains:3,ice:0,bombs:0,bombTimer:0,jolly:true,  categoryGoals:[{cat:'geo',count:3},{cat:'sci',count:2}]},
     {n:21, pairs:10, lives:3,diff:1,type:'easy',  name:'Babilonia',            maxMoves:22,   chains:3,ice:2,bombs:0,bombTimer:0,jolly:false},
-    {n:22, pairs:10, lives:3,diff:2,type:'medium', name:"L'Acropoli",           maxMoves:20,   chains:4,ice:3,bombs:0,bombTimer:0,jolly:false},
+    {n:22, pairs:10, lives:3,diff:2,type:'medium', name:"L'Acropoli",           maxMoves:20,   chains:4,ice:3,bombs:0,bombTimer:0,jolly:false, categoryGoals:[{cat:'hist',count:3},{cat:'wild',count:2}]},
     {n:23, pairs:10, lives:3,diff:2,type:'medium', name:'Le Legioni',           maxMoves:22,   chains:5,ice:3,bombs:0,bombTimer:0,jolly:false},
     {n:24, pairs:8,  lives:3,diff:1,type:'easy',  name:'Il Faraone',           maxMoves:20,   chains:2,ice:2,bombs:0,bombTimer:0,jolly:false},
     {n:25, pairs:10, lives:2,diff:2,type:'boss',  name:'Alessandro',           maxMoves:15,   chains:6,ice:4,bombs:0,bombTimer:0,jolly:true},
-    {n:26, pairs:10, lives:3,diff:2,type:'medium', name:"L'Oriente",            maxMoves:20,   chains:4,ice:4,bombs:1,bombTimer:6,jolly:false},
+    {n:26, pairs:10, lives:3,diff:2,type:'medium', name:"L'Oriente",            maxMoves:20,   chains:4,ice:4,bombs:1,bombTimer:6,jolly:false, categoryGoals:[{cat:'art',count:3},{cat:'sci',count:2}]},
     {n:27, pairs:10, lives:3,diff:2,type:'medium', name:'I Fenici',             maxMoves:20,   chains:5,ice:4,bombs:1,bombTimer:5,jolly:false},
-    {n:28, pairs:12, lives:3,diff:2,type:'medium', name:'I Vichinghi',          maxMoves:22,   chains:5,ice:5,bombs:2,bombTimer:6,jolly:false},
+    {n:28, pairs:12, lives:3,diff:2,type:'medium', name:'I Vichinghi',          maxMoves:22,   chains:5,ice:5,bombs:2,bombTimer:6,jolly:false, categoryGoals:[{cat:'geo',count:2},{cat:'hist',count:2},{cat:'wild',count:2}]},
     {n:29, pairs:8,  lives:3,diff:1,type:'easy',  name:'Ultimo Respiro',       maxMoves:20,   chains:3,ice:2,bombs:1,bombTimer:7,jolly:false},
     {n:30, pairs:10, lives:2,diff:2,type:'boss',  name:'Boss Finale',          maxMoves:12,   chains:6,ice:5,bombs:2,bombTimer:4,jolly:true},
   ],
@@ -2669,7 +2680,9 @@ function freshGs(cfg){
          // Special cells
          chainsLeft:cfg.chains||0,
          iceLeft:cfg.ice||0,
-         jokerPendingQ:false};
+         jokerPendingQ:false,
+         // Category goals
+         catMatches:{}};
 }
 
 function rLives(){$('lives').innerHTML=[1,2,3].map(i=>`<span class="heart${i>gs.lives?' lost':''}">❤️</span>`).join('')}
@@ -2693,6 +2706,7 @@ function rProgress(){
   if(gs.chainsLeft>0) label=`🔗 ${gs.chainsLeft} catene · ${pairsTxt}`;
   else if(gs.iceLeft>0) label=`🧊 ${gs.iceLeft} ghiacci · ${pairsTxt}`;
   $('prog-label').textContent=label;
+  rCatGoals();
 }
 function rRaffBar(){
   const el=$('raffica-bar'); if(!el)return;
@@ -2710,6 +2724,31 @@ function rRaffBar(){
   } else {
     el.style.display='none';
   }
+}
+
+const CAT_GOAL_ICONS={geo:'🌍',sci:'🔬',art:'🎨',hist:'📜',wild:'⚡'};
+const CAT_GOAL_NAMES={geo:'Geografia',sci:'Scienza',art:'Arte & Lett.',hist:'Storia',wild:'Cult. Gen.'};
+
+function catGoalsDone(){
+  return (gs.cfg.categoryGoals||[]).every(g=>(gs.catMatches[g.cat]||0)>=g.count);
+}
+
+function rCatGoals(){
+  const el=$('cat-goals-area');
+  if(!el)return;
+  const goals=gs.cfg.categoryGoals||[];
+  if(!goals.length){el.style.display='none';return;}
+  el.style.display='flex';
+  el.innerHTML=goals.map(g=>{
+    const done=gs.catMatches[g.cat]||0;
+    const pct=Math.min(done/g.count,1)*100;
+    const complete=done>=g.count;
+    return `<div class="cg-row">
+      <div class="cg-label">${CAT_GOAL_ICONS[g.cat]||''} ${CAT_GOAL_NAMES[g.cat]||g.cat}</div>
+      <div class="cg-track"><div class="cg-fill${complete?' done':''}" style="width:${pct}%"></div></div>
+      <div class="cg-count${complete?' done':''}">${complete?'✓':done+'/'+g.count}</div>
+    </div>`;
+  }).join('');
 }
 
 function triggerRaffica(type, cat, onDone){
@@ -2977,6 +3016,7 @@ function onAnswer(chosen){
 
     // Match confermato: conta coppia e assegna punti
     gs.pairs++;
+    const _mc=gs.pendingCat; if(_mc)gs.catMatches[_mc]=(gs.catMatches[_mc]||0)+1;
     gs.score+=(50+100*Math.max(1,gs.combo))*mult;
     gs.combo=Math.min(gs.combo+1,5);
     if(gs.combo>gs.maxCombo) gs.maxCombo=gs.combo;
@@ -3031,15 +3071,15 @@ function closeModal(){
       gs.pendingRaffica=null;
       triggerRaffica(rt,cat,()=>{
         if(gs.lives<=0){gs.gameOverReason='lives';showResult(false);}
-        else if(gs.pairs>=gs.cfg.pairs)showResult(true);
+        else if(gs.pairs>=gs.cfg.pairs&&catGoalsDone())showResult(true);
         else if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves){gs.gameOverReason='moves';showResult(false);}
       });
       return;
     }
 
-    // Check fine livello — WIN solo se coppie completate
+    // Check fine livello — WIN solo se coppie E obiettivi categoria completati
     if(gs.lives<=0){gs.gameOverReason='lives';return showResult(false);}
-    if(gs.pairs>=gs.cfg.pairs)return showResult(true);
+    if(gs.pairs>=gs.cfg.pairs&&catGoalsDone())return showResult(true);
     if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves){gs.gameOverReason='moves';return showResult(false);}
   },380);
 }
@@ -3608,7 +3648,7 @@ function sendFeedback(){
   const liked   = ($('fb-liked').value||'').trim();
   const improve = ($('fb-improve').value||'').trim();
   const body    = `Cosa ti è piaciuto di più:\n${liked||'(non compilato)'}\n\nCosa miglioreresti:\n${improve||'(non compilato)'}`;
-  const mailto  = `mailto:wizzpop.feedback@gmail.com?subject=${encodeURIComponent('WizzPop Beta Feedback')}&body=${encodeURIComponent(body)}`;
+  const mailto  = `mailto:vittocaprioglio@gmail.com?subject=${encodeURIComponent('WizzPop Beta Feedback')}&body=${encodeURIComponent(body)}`;
   window.location.href = mailto;
   const t=$('share-toast');
   t.textContent='Grazie! 🙏';
