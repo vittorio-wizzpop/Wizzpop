@@ -2581,13 +2581,6 @@ function showLevels(wid){
     const nc=!unlocked?'lv-locked':'';
     const starsStr=stars>0?'⭐'.repeat(stars)+'☆'.repeat(3-stars):'☆☆☆';
     const isBoss=cfg.type==='boss';
-    // Indicatori speciali per livelli sbloccati
-    const specials=unlocked?[
-      cfg.chains>0?`🔗`:'',
-      cfg.ice>0?`🧊`:'',
-      cfg.bombs>0?`💣`:'',
-      cfg.jolly?`⭐`:'',
-    ].filter(Boolean).join(''):'';
     return `
     <div class="lv-node ${nc}" style="left:${x}px;top:${y}px" data-n="${cfg.n}" id="lvnode-${cfg.n}">
       <div class="lv-bubble ${bc}" id="lvbubble-${cfg.n}" ${isBoss&&unlocked?'style="width:82px;height:82px"':''}>
@@ -2597,7 +2590,6 @@ function showLevels(wid){
           : `<span style="font-size:22px;font-weight:900">${cfg.n}</span>`}
         ${unlocked?`<div class="lv-starsm">${starsStr}</div>`:''}
       </div>
-      ${specials?`<div style="font-size:9px;margin-top:2px;letter-spacing:1px;opacity:.8">${specials}</div>`:''}
     </div>`;
   }).join('')}`;
 
