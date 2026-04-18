@@ -3458,7 +3458,7 @@ $('btn-fb-reset').addEventListener('click',resetProgress);
 // ── Sfida un amico ────────────────────────────────────────────────
 function shareChallenge(){
   const SHARE_URL='https://vittorio-wizzpop.github.io/Wizzpop/preview.html';
-  const SHARE_TEXT='Sto giocando a WizzPop, il quiz culturale che fa saltare il cervello 🧠⚡ Prova anche tu — è gratis dal browser, nessun download!';
+  const SHARE_TEXT='Pensavo di essere colto… poi ho provato WizzPop 😂 Puzzle game + domande di cultura generale su tutto. Gratis, nessun download, ti avverto: è addictive';
   if(navigator.share){
     navigator.share({title:'WizzPop',text:SHARE_TEXT,url:SHARE_URL}).catch(()=>{});
   } else {
