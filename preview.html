@@ -417,6 +417,22 @@ body{
   0%{transform:translate(0,0) scale(1.2);opacity:1}
   100%{transform:translate(var(--tx),var(--ty)) scale(0);opacity:0}
 }
+/* Cascade animations — Candy Crush style */
+@keyframes cell-cascade{
+  0%{transform:translateY(var(--cascade-from))}
+  100%{transform:translateY(0)}
+}
+.cell.cascading{
+  animation:cell-cascade .3s cubic-bezier(.25,.46,.45,.94) both;
+}
+@keyframes cell-enter-top{
+  0%{transform:translateY(var(--cascade-from));opacity:0}
+  100%{transform:translateY(0);opacity:1}
+}
+.cell.entering-top{
+  opacity:0;
+  animation:cell-enter-top .2s ease-out both;
+}
 .prog-area{padding:6px 20px 22px;flex-shrink:0;position:relative;z-index:5}
 .prog-label{text-align:center;font-size:13px;color:rgba(255,255,255,.55);margin-bottom:7px}
 .prog-track{height:6px;background:rgba(255,255,255,.12);border-radius:3px;overflow:hidden}
@@ -430,7 +446,7 @@ body{
 }
 .overlay.open{background:rgba(0,0,0,.48);pointer-events:all}
 .modal-sheet{
-  background:var(--bg);border-radius:26px 26px 0 0;
+  background:var(--bg);border-radius:16px 16px 0 0;
   transform:translateY(100%);
   transition:transform .36s cubic-bezier(.32,.72,0,1);
   display:flex;flex-direction:column;
@@ -443,7 +459,7 @@ body{
 .modal-scroll{
   flex:1;overflow-y:auto;-webkit-overflow-scrolling:touch;
   display:flex;flex-direction:column;gap:13px;
-  padding:20px 22px 12px;
+  padding:clamp(16px,4vw,20px) clamp(16px,4vw,24px) 12px;
   overscroll-behavior:contain;
 }
 /* Nasconde la scrollbar su webkit mantenendo la funzionalità */
@@ -471,12 +487,12 @@ body{
 .timer-track{height:4px;background:#E5E4DF;border-radius:2px;overflow:hidden}
 .timer-fill{height:100%;background:var(--primary);border-radius:2px;transition:width 1s linear,background .3s}
 .timer-fill.danger{background:var(--err)}
-.q-text{font-size:17px;font-weight:700;color:var(--t1);line-height:1.5}
+.q-text{font-size:clamp(15px,3.8vw,18px);font-weight:700;color:var(--t1);line-height:1.5}
 .options{display:flex;flex-direction:column;gap:9px}
 .opt{
   background:var(--surface);border:1.5px solid #E5E4DF;
-  border-radius:13px;padding:14px 16px;font-size:15px;font-weight:600;
-  color:var(--t1);cursor:pointer;text-align:left;font-family:inherit;
+  border-radius:13px;padding:clamp(10px,2.5vw,14px) 16px;font-size:clamp(13px,3.5vw,16px);font-weight:600;
+  color:var(--t1);cursor:pointer;text-align:left;font-family:inherit;word-break:break-word;
   transition:background .22s,border-color .22s,color .22s,transform .1s;
 }
 .opt:hover:not(:disabled){border-color:var(--primary);transform:scale(1.01)}
@@ -493,9 +509,9 @@ body{
   padding-top:0;padding-bottom:0;
 }
 .fact-box.show{max-height:400px;opacity:1;padding:15px}
-.fact-tag{font-size:11px;font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.8px}
+.fact-tag{font-size:clamp(14px,3.8vw,18px);font-weight:800;color:var(--primary);text-transform:uppercase;letter-spacing:.8px;margin-bottom:4px}
 .fact-result{font-size:15px;font-weight:700;margin-bottom:2px}
-.fact-body{font-size:14px;color:var(--t1);line-height:1.5}
+.fact-body{font-size:clamp(14px,3.8vw,17px);color:var(--t1);line-height:1.6;word-break:break-word;overflow-wrap:break-word}
 .btn-cont{
   background:var(--primary);color:#fff;border:none;
   border-radius:13px;padding:14px;font-size:15px;font-weight:700;
@@ -3000,6 +3016,26 @@ function spawnCellParticles(elA,elB,color){
   });
 }
 
+function spawnExplosion(el,color){
+  const grid=$('grid');
+  if(!grid||!el)return;
+  const gr=grid.getBoundingClientRect();
+  const r=el.getBoundingClientRect();
+  const cx=r.left+r.width/2-gr.left;
+  const cy=r.top+r.height/2-gr.top;
+  [0,45,90,135,180,225,270,315].forEach(deg=>{
+    const p=document.createElement('div');
+    p.className='cell-particle';
+    const rad=deg*Math.PI/180;
+    const dist=40+Math.random()*20;
+    p.style.cssText=`left:${cx}px;top:${cy}px;background:${color};`
+      +`--tx:${Math.cos(rad)*dist}px;--ty:${Math.sin(rad)*dist}px;`
+      +`animation-duration:.4s;width:6px;height:6px;`;
+    grid.appendChild(p);
+    setTimeout(()=>p.remove(),450);
+  });
+}
+
 // ════════════════════════════════════════════════════════ SPECIAL CELL HELPERS
 
 function getAdjacent(idx){
@@ -3190,19 +3226,12 @@ function onAnswer(chosen){
 function closeModal(){
   clearInterval(gs.timerH);
   $('overlay').classList.remove('open');
-  setTimeout(()=>{
-    gs.board=gravity(gs.board); rGrid();
 
-    if(!gs.lastMatchCorrect){
-      [gs.pendingA,gs.pendingB].forEach(idx=>{
-        if(idx===null)return;
-        const el=document.querySelector(`.cell[data-i="${idx}"]`);
-        if(el){el.classList.add('err');setTimeout(()=>el.classList.remove('err'),500);}
-      });
-    }
-    gs.pendingA=null; gs.pendingB=null;
+  const correct=gs.lastMatchCorrect;
+  const pA=gs.pendingA, pB=gs.pendingB;
 
-    // Raffica pending?
+  // Shared end-of-turn check
+  function checkEnd(){
     if(gs.pendingRaffica){
       const rt=gs.pendingRaffica; const cat=gs.rafficaCat;
       gs.pendingRaffica=null;
@@ -3213,12 +3242,100 @@ function closeModal(){
       });
       return;
     }
-
-    // Check fine livello — WIN solo se coppie E obiettivi categoria completati
     if(gs.lives<=0){gs.gameOverReason='lives';return showResult(false);}
     if(gs.pairs>=gs.cfg.pairs&&catGoalsDone())return showResult(true);
     if(gs.maxMoves!==null&&gs.moves>=gs.maxMoves){gs.gameOverReason='moves';return showResult(false);}
-  },380);
+  }
+
+  if(!correct){
+    // Wrong answer: existing behavior, no cascade
+    setTimeout(()=>{
+      gs.board=gravity(gs.board); rGrid();
+      [pA,pB].forEach(idx=>{
+        if(idx===null)return;
+        const el=document.querySelector(`.cell[data-i="${idx}"]`);
+        if(el){el.classList.add('err');setTimeout(()=>el.classList.remove('err'),500);}
+      });
+      gs.pendingA=null; gs.pendingB=null;
+      checkEnd();
+    },380);
+    return;
+  }
+
+  // ── CORRECT ANSWER: explosion + Candy Crush cascade ──────────────
+  const colA=pA!==null?pA%6:-1;
+  const colB=pB!==null?pB%6:-1;
+  const affectedCols=[...new Set([colA,colB].filter(c=>c>=0))];
+
+  // Count gone cells per affected column (before gravity)
+  const gonePerCol={};
+  affectedCols.forEach(col=>{
+    gonePerCol[col]=0;
+    for(let row=0;row<6;row++) if(gs.board[row*6+col].gone) gonePerCol[col]++;
+  });
+
+  // Phase 1 (0ms): explosion particles from matched cell positions
+  const expColors={geo:'#4CAF50',sci:'#2196F3',art:'#9C27B0',hist:'#FF9800',wild:'#F44336'};
+  const expColor=expColors[gs.pendingCat]||'#fff';
+  [pA,pB].forEach(idx=>{
+    if(idx===null)return;
+    const el=document.querySelector(`.cell[data-i="${idx}"]`);
+    if(el) spawnExplosion(el,expColor);
+  });
+
+  // Lock grid interaction during animation
+  const gridEl=$('grid');
+  if(gridEl) gridEl.style.pointerEvents='none';
+
+  // Phase 2 (150ms): gravity + re-render + cascade animations
+  setTimeout(()=>{
+    const oldBoard=gs.board.map(c=>({...c})); // snapshot before gravity
+    gs.board=gravity(gs.board);
+    rGrid();
+
+    const firstCell=gridEl?gridEl.querySelector('.cell'):null;
+    const cellH=firstCell?firstCell.offsetHeight+4:60;
+
+    affectedCols.forEach(col=>{
+      const gc=gonePerCol[col]||0;
+      if(!gc)return;
+
+      // Find which rows were gone in this column
+      const goneRows=[];
+      for(let row=0;row<6;row++) if(oldBoard[row*6+col].gone) goneRows.push(row);
+
+      // Animate cells that actually moved (those above a gone row)
+      for(let oldRow=0;oldRow<6;oldRow++){
+        if(oldBoard[oldRow*6+col].gone) continue;
+        const goneBelow=goneRows.filter(r=>r>oldRow).length;
+        if(!goneBelow) continue;
+        const newRow=oldRow+goneBelow;
+        if(newRow>5) continue;
+        const el=gridEl.querySelector(`.cell[data-i="${newRow*6+col}"]`);
+        if(!el) continue;
+        el.style.setProperty('--cascade-from',`-${goneBelow*cellH}px`);
+        el.style.animationDelay=`${(5-newRow)*30}ms`;
+        el.classList.add('cascading');
+      }
+
+      // New cells entering from top
+      for(let row=0;row<gc;row++){
+        const el=gridEl.querySelector(`.cell[data-i="${row*6+col}"]`);
+        if(!el) continue;
+        const colDelay=affectedCols.indexOf(col)*40;
+        el.style.setProperty('--cascade-from',`-${(gc-row)*cellH}px`);
+        el.style.animationDelay=`${300+colDelay}ms`;
+        el.classList.add('entering-top');
+      }
+    });
+  },150);
+
+  // Phase 3 (650ms): restore interactivity + check game conditions
+  setTimeout(()=>{
+    if(gridEl) gridEl.style.pointerEvents='';
+    gs.pendingA=null; gs.pendingB=null;
+    checkEnd();
+  },650);
 }
 
 // ════════════════════════════════════════════════════════ GAME CLICKS
