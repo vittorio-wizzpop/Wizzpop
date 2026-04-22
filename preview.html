@@ -1075,6 +1075,44 @@ body{
 }
 .cell.bomb-exploding{animation:bomb-explode .5s ease-out forwards!important;pointer-events:none}
 
+/* ═══════════════════════════════════════ FEEDBACK BANNER L15 */
+#fb15-overlay{
+  position:fixed;inset:0;z-index:9989;
+  background:rgba(0,0,0,0);pointer-events:none;
+  transition:background .3s ease;
+}
+#fb15-overlay.open{background:rgba(0,0,0,.52);pointer-events:all}
+#fb15-sheet{
+  position:fixed;bottom:0;left:50%;
+  transform:translateX(-50%) translateY(100%);
+  width:390px;max-width:100vw;
+  background:#1C1A38;border-radius:20px 20px 0 0;
+  border-top:1px solid rgba(255,255,255,.12);
+  padding:26px 24px 48px;
+  display:flex;flex-direction:column;align-items:center;gap:14px;
+  z-index:9990;
+  transition:transform .4s cubic-bezier(.32,.72,0,1);
+  box-shadow:0 -10px 40px rgba(0,0,0,.6);
+}
+#fb15-sheet.open{transform:translateX(-50%) translateY(0)}
+.fb15-emoji{font-size:36px;line-height:1}
+.fb15-title{font-size:18px;font-weight:800;color:#fff;text-align:center;line-height:1.3}
+.fb15-sub{font-size:14px;color:rgba(255,255,255,.65);text-align:center;line-height:1.5;max-width:320px}
+#fb15-send{
+  width:100%;background:#EF9F27;color:#1A1A18;border:none;
+  border-radius:13px;padding:16px;font-size:16px;font-weight:700;
+  font-family:inherit;cursor:pointer;
+  transition:transform .12s,opacity .12s;
+}
+#fb15-send:active{transform:scale(.97);opacity:.9}
+#fb15-skip{
+  width:100%;background:transparent;color:rgba(255,255,255,.55);
+  border:1.5px solid rgba(255,255,255,.18);border-radius:13px;
+  padding:13px;font-size:15px;font-weight:700;font-family:inherit;
+  cursor:pointer;transition:background .2s;
+}
+#fb15-skip:hover{background:rgba(255,255,255,.07)}
+
 /* ═══════════════════════════════════════ WELCOME TOAST */
 #welcome-toast{
   position:fixed;top:0;left:50%;transform:translateX(-50%) translateY(-100%);
@@ -1116,6 +1154,16 @@ body{
 <!-- ── Welcome back toast (standalone mode) ── -->
 <div id="welcome-toast" role="status" aria-live="polite">
   <span class="wt-text">⚡ Bentornato su WizzPop!</span>
+</div>
+
+<!-- ── Level 15 feedback banner ── -->
+<div id="fb15-overlay" aria-hidden="true"></div>
+<div id="fb15-sheet" role="dialog" aria-modal="true" aria-label="Lascia il tuo feedback">
+  <div class="fb15-emoji">🧠⚡</div>
+  <div class="fb15-title">Metà percorso completato!</div>
+  <div class="fb15-sub">Hai completato la prima era. La tua opinione ci aiuta a migliorare WizzPop per tutti 🙏</div>
+  <button id="fb15-send">Lascia il tuo feedback ⚡</button>
+  <button id="fb15-skip">Continua a giocare →</button>
 </div>
 
 <div id="phone">
@@ -3583,6 +3631,12 @@ function showResult(win){
     setTimeout(()=>$(id).classList.add('lit'), 420+idx*460)
   );
   if(stars===3) setTimeout(spawnConfetti, 1900);
+
+  // Mid-beta feedback prompt after level 15 (once per session)
+  if(isWin && nav.levelN===15 && !localStorage.getItem('wizzpop_feedback15_shown')){
+    localStorage.setItem('wizzpop_feedback15_shown','1');
+    setTimeout(showFb15Banner, 1800);
+  }
 }
 
 // ════════════════════════════════════════════════════════ PROFILE
@@ -3889,25 +3943,40 @@ $('btn-to-lvls').addEventListener('click',()=>showLevels(nav.worldId));
 
 // ── Feedback post-livello 30 ──────────────────────────────────────
 function showFeedback(){
+  const alreadySent=!!localStorage.getItem('wizzpop_feedback_sent');
+  const title=document.querySelector('#feedback .fb-title');
+  const sub=document.querySelector('#feedback .fb-sub');
+  const sendBtn=$('btn-fb-send');
+  if(alreadySent){
+    if(title) title.textContent='Hai completato la beta!';
+    if(sub) sub.textContent='Esploratore leggendario. Hai attraversato due ere e lasciato il tuo segno.\nGrazie per aver fatto parte di questo viaggio — ti avviseremo quando WizzPop arriverà sugli store. 🚀';
+    if(sendBtn) sendBtn.style.display='none';
+  } else {
+    if(title) title.textContent='Hai completato la beta di WizzPop!';
+    if(sub) sub.textContent='Sei arrivato fin qui, quindi o sei molto bravo o sei molto curioso. In entrambi i casi vogliamo sapere cosa pensi 🧠⚡';
+    if(sendBtn) sendBtn.style.display='';
+  }
   showScreen('feedback');
-  // Riavvia animazione bounce trofeo
   const trophy=document.querySelector('#feedback .fb-trophy');
   if(trophy){
     trophy.style.animation='none';
     requestAnimationFrame(()=>{ trophy.style.animation='fbBounce .4s cubic-bezier(.36,.07,.19,.97) both'; });
   }
-  gtag('event','feedback_screen_shown');
+  gtag('event','feedback_screen_shown',{already_sent:alreadySent});
 }
 
 function sendFeedback(){
+  localStorage.setItem('wizzpop_feedback_sent','1');
   window.open('https://docs.google.com/forms/d/e/1FAIpQLSdPg7R1bqcAW8aLQPJKym8YCFqgIvd7k-TV1osNCWHskd7lfA/viewform','_blank');
-  gtag('event','feedback_sent');
+  gtag('event','feedback_sent',{trigger:'level30_screen'});
 }
 
 function resetProgress(){
   if(!confirm('Vuoi davvero ricominciare dall\'inizio? Tutti i progressi verranno cancellati.')) return;
   localStorage.removeItem('wz2');
   localStorage.removeItem('wz-prof');
+  localStorage.removeItem('wizzpop_feedback15_shown');
+  localStorage.removeItem('wizzpop_feedback_sent');
   showScreen('home');
   homeEntrance();
   gtag('event','progress_reset');
@@ -3915,6 +3984,33 @@ function resetProgress(){
 
 $('btn-fb-send').addEventListener('click',sendFeedback);
 $('btn-fb-reset').addEventListener('click',resetProgress);
+
+// ── Level 15 feedback banner ──────────────────────────────────────
+function showFb15Banner(){
+  $('fb15-overlay').classList.add('open');
+  $('fb15-sheet').classList.add('open');
+}
+function hideFb15Banner(then){
+  $('fb15-overlay').classList.remove('open');
+  $('fb15-sheet').classList.remove('open');
+  if(then) setTimeout(then,420);
+}
+function fb15NavNext(){
+  const cfgs=LEVEL_CFGS[nav.worldId]||[];
+  const next=cfgs.find(c=>c.n===nav.levelN+1);
+  if(next){ showCinematic(()=>launchGame(nav.worldId,next)); }
+  else { showLevels(nav.worldId); }
+}
+$('fb15-send').addEventListener('click',()=>{
+  localStorage.setItem('wizzpop_feedback_sent','1');
+  window.open('https://docs.google.com/forms/d/e/1FAIpQLSdPg7R1bqcAW8aLQPJKym8YCFqgIvd7k-TV1osNCWHskd7lfA/viewform','_blank');
+  gtag('event','feedback_sent',{trigger:'level15_banner'});
+  hideFb15Banner(fb15NavNext);
+});
+$('fb15-skip').addEventListener('click',()=>{
+  gtag('event','feedback_banner_skipped',{level:15});
+  hideFb15Banner(fb15NavNext);
+});
 
 // ── Sfida un amico ────────────────────────────────────────────────
 function shareChallenge(){
