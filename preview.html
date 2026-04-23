@@ -1126,6 +1126,151 @@ body{
 }
 #welcome-toast.show{transform:translateX(-50%) translateY(0)}
 .wt-text{font-size:14px;font-weight:700;color:#fff;letter-spacing:.2px}
+
+/* ═══════════════════════════════════════════════════════════════
+   WIZZPOP — RESPONSIVE PATCH v1
+   ═══════════════════════════════════════════════════════════════ */
+
+/* ── 1. MOBILE: fallback altezza per browser senza dvh (Android < 2022, iOS < 15.4) ── */
+@media (max-width: 430px) {
+  body { background: var(--bg); align-items: flex-start; }
+  #phone {
+    border-radius: 0;
+    width: 100vw;
+    height: 100vh;
+    height: 100svh;
+    height: 100dvh;
+    box-shadow: none;
+  }
+}
+
+/* ── 2. LEVEL PATH: previene overflow su schermi < 390px ── */
+.lv-path {
+  width: 350px;
+  width: min(350px, calc(100vw - 40px));
+}
+
+/* ── 3. SCORE BAR: compatta su schermi ≤ 375px ── */
+@media (max-width: 375px) {
+  .score-bar       { gap: 7px; padding: 12px 10px 10px; }
+  .heart           { font-size: 15px; }
+  .moves-num       { font-size: 17px; }
+  .moves-lbl       { font-size: 8px; }
+  .score-num       { font-size: 17px; }
+  .combo-badge     { font-size: 12px; padding: 2px 8px; }
+  .grid-wrap       { padding: 3px 8px; }
+  .grid            { gap: 3px; }
+  .cell            { border-radius: 9px; }
+  .cell-bomb-num   { font-size: 18px; }
+  .prog-area       { padding: 5px 16px 18px; }
+  .prog-label      { font-size: 12px; }
+  .legend          { padding: 6px 10px; }
+  .leg-item        { font-size: 11px; padding: 3px 8px; }
+}
+
+/* ── 4. HOME su schermi piccoli ── */
+@media (max-width: 375px) {
+  #home            { padding-bottom: 36px; }
+  .home-topbar     { padding: 14px 16px 0; }
+  .logo-emoji      { font-size: 58px; }
+  .logo-title      { font-size: 44px; }
+  .logo-tagline    { font-size: 14px; }
+  .btn-play        { padding: 17px; font-size: 16px; }
+  .btn-map         { padding: 12px; font-size: 14px; }
+  .home-bottom     { gap: 8px; padding: 0 20px; }
+}
+
+/* ── 5. WELCOME su schermi piccoli ── */
+@media (max-width: 375px) {
+  #welcome         { padding: 0 22px 36px; }
+  .wlc-logo        { font-size: 60px; }
+  .wlc-title       { font-size: 34px; }
+  .wlc-tagline     { font-size: 14px; }
+  .wlc-rules       { padding: 16px; gap: 10px; }
+  .wlc-rule-icon   { width: 32px; height: 32px; font-size: 16px; }
+  .wlc-rule-text   { font-size: 13px; padding-top: 5px; }
+  .wlc-hero        { gap: 10px; padding-top: 16px; }
+  .btn-wlc         { padding: 17px; font-size: 16px; }
+  .wlc-beta-disclaimer { font-size: 11px; }
+}
+
+/* ── 6. ERA INTRO e CINEMATIC su schermi ≤ 375px ── */
+@media (max-width: 375px) {
+  .ei-content  { padding: 32px 28px; gap: 14px; }
+  .ei-text     { font-size: 20px; line-height: 1.6; }
+  .ei-btn      { padding: 14px 38px; font-size: 15px; }
+  .cin-content { padding: 20px 28px; gap: 14px; }
+  .cin-text    { font-size: 20px; line-height: 1.55; }
+  .cin-author  { font-size: 18px; }
+}
+
+/* ── 7. CATEGORY GOALS su schermi piccoli ── */
+@media (max-width: 375px) {
+  #cat-goals-area { padding: 3px 10px 5px; }
+  .cg-label       { min-width: 88px; font-size: 10px; }
+  .cg-row         { gap: 6px; font-size: 11px; }
+}
+
+/* ── 8. MODAL FOOTER: safe-area per iPhone con barra home ── */
+.modal-footer.show {
+  padding-bottom: max(36px, calc(16px + env(safe-area-inset-bottom, 0px)));
+}
+@media (max-height: 680px) {
+  .modal-footer.show {
+    padding-bottom: max(28px, calc(12px + env(safe-area-inset-bottom, 0px)));
+  }
+}
+
+/* ── 9. SCHERMI MOLTO PICCOLI ≤ 320px ── */
+@media (max-width: 320px) {
+  .score-bar     { gap: 5px; padding: 10px 8px 8px; }
+  .heart         { font-size: 13px; }
+  .moves-num     { font-size: 14px; }
+  .score-num     { font-size: 14px; }
+  .combo-badge   { font-size: 11px; padding: 2px 6px; border-radius: 6px; }
+  .grid-wrap     { padding: 2px 6px; }
+  .grid          { gap: 2px; }
+  .cell          { border-radius: 7px; border-width: 2px; }
+  .cell-bomb-num { font-size: 15px; }
+  .cell-emoji    { font-size: 8px; }
+  .prog-area     { padding: 4px 12px 14px; }
+  #welcome       { padding: 0 18px 28px; }
+  .wlc-logo      { font-size: 48px; }
+  .wlc-title     { font-size: 28px; }
+  .wlc-rule-text { font-size: 12px; }
+  .wlc-rules     { padding: 12px; gap: 8px; }
+  .btn-wlc       { padding: 15px; font-size: 15px; }
+  .lv-hero       { padding: 14px 16px 18px; }
+  .lv-world-name { font-size: 20px; }
+  .lv-bubble     { width: 62px; height: 62px; font-size: 18px; }
+  .lv-crown      { font-size: 14px; top: -16px; }
+  .lv-label      { font-size: 9px; }
+  .res-content   { padding: 16px 16px 0; gap: 8px; }
+  .res-title     { font-size: 15px; }
+  .res-star      { font-size: 28px; }
+  .res-stat-val  { font-size: 18px; }
+  .btn-f         { padding: 10px; font-size: 13px; border-radius: 12px; }
+  .res-btns      { gap: 5px; padding-bottom: 24px; }
+  .ei-content    { padding: 24px 22px; gap: 12px; }
+  .cin-content   { padding: 20px 22px; gap: 12px; }
+  .ei-text,
+  .cin-text      { font-size: 18px; line-height: 1.5; }
+  .cin-author    { font-size: 16px; }
+  .ei-btn        { padding: 14px 32px; font-size: 15px; }
+  .q-text        { font-size: 14px; line-height: 1.4; }
+  .opt           { padding: 10px 12px; font-size: 13px; border-radius: 10px; }
+  .fact-body     { font-size: 12px; line-height: 1.4; }
+  .modal-scroll  { gap: 8px; padding: 12px 14px 10px; }
+}
+
+/* ── 10. TAP TARGETS minimi ── */
+.btn-play, .btn-wlc, .btn-fb-form { min-height: 48px; }
+.btn-map                           { min-height: 44px; }
+.btn-f, .btn-cont, .opt            { min-height: 44px; }
+
+/* ═══════════════════════════════════════════════════════════════
+   FINE PATCH
+   ═══════════════════════════════════════════════════════════════ */
 </style>
 </head>
 <body>
